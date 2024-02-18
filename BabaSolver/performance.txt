@@ -1,0 +1,221 @@
+Did not win...
+Max move depth: 5
+Number of moves simulated: 1188
+Total time: 870,838 microseconds
+Time per move: 733 microseconds
+
+Did not win...
+Max move depth: 8
+Number of moves simulated: 51588
+Total time: 36,260,899 microseconds
+Time per move: 702 microseconds
+
+Did not win...
+Max move depth: 8
+Number of moves simulated: 51588
+Total time: 36,015,113 microseconds
+Time per move: 698 microseconds
+
+
+After IS text optimization
+
+Did not win...
+Max move depth: 3
+Number of moves simulated: 84
+Total time: 53498 microseconds
+Time per move: 636 microseconds
+
+Did not win...
+Max move depth: 5
+Number of moves simulated: 1188
+Total time: 752,034 microseconds
+Time per move: 633 microseconds
+
+Did not win...
+Max move depth: 8
+Number of moves simulated: 51588
+Total time: 30,134,831 microseconds
+Time per move: 584 microseconds
+
+Did not win...
+Max move depth: 8
+Number of moves simulated: 51588
+Total time: 30,096,540 microseconds
+Time per move: 583 microseconds
+
+Did not win...
+Max move depth: 10
+Number of moves simulated: 622,280
+Total time: 364,793,427 microseconds
+Time per move: 586 microseconds
+
+Did not win...
+Max move depth: 10
+Number of moves simulated: 622,280
+Total time: 363,085,399 microseconds
+Time per move: 583 microseconds
+
+
+--
+After the transition to bitmasks instead of vectors
+
+Did not win...
+Did not find the invincible Babas trick...
+Max move depth: 10
+Number of moves simulated: 622,280
+Total time: 2,257,697 microseconds
+Time per move: 3 microseconds
+
+Did not win...
+Did not find the invincible Babas trick...
+Max move depth: 10
+Number of moves simulated: 622,280
+Total time: 2,141,123 microseconds
+Time per move: 3 microseconds
+
+Did not win...
+Did not find the invincible Babas trick...
+Max move depth: 15
+Number of moves simulated: 312776436
+Total time: 1,082,055,068 microseconds
+Time per move: 3 microseconds
+
+
+--
+After release build
+
+Max move depth: 10
+Number of moves simulated: 622,280
+Total time: 111,362 microseconds
+Time per move: 0 microseconds
+
+Max move depth: 10
+Number of moves simulated: 622,280
+Total time: 108,405 microseconds
+Time per move: 0 microseconds
+
+Max move depth: 15
+Number of moves simulated: 312,776,436
+Total time: 62,286,244 microseconds
+Time per move: 0 microseconds
+
+
+--
+After 64-bit mode
+
+Max move depth: 12
+Number of moves simulated: 7,477,520
+Total time: 1,506,808 microseconds
+Time per move: 0 microseconds
+
+Max move depth: 12
+Number of moves simulated: 7,477,636
+Total time: 1,857,022 microseconds
+Time per move: 0 microseconds
+
+Max move depth: 15
+Number of moves simulated: 312,776,436
+Total time: 46,676,113 microseconds
+Time per move: 0 microseconds
+
+Max move depth: 15
+Number of moves simulated: 312,845,496
+Total time: 47,847,909 microseconds
+Time per move: 0 microseconds
+
+Max move depth: 15
+Number of moves simulated: 312,845,496
+Total time: 57,275,656 microseconds
+Time per move: 0 microseconds
+
+Did not win...
+Did not find the invincible Babas trick...
+Max move depth: 16
+Number of moves simulated: 1,077,571,636
+Total time: 132,070,851 microseconds
+Time per move: 0 microseconds
+
+Did not win...
+Did not find the invincible Babas trick...
+Max move depth: 16
+Number of moves simulated: 1,077,571,636
+Total time: 161,079,184 microseconds
+Time per move: 0 microseconds
+
+
+--
+After adding hash map of computed moves
+
+Did not win...
+Did not find the invincible Babas trick...
+Max move depth: 15
+Number of moves simulated: 1,995,400
+Total time: 4,713,515 microseconds
+Time per move: 2 microseconds
+
+Did not win...
+Did not find the invincible Babas trick...
+Max move depth: 17
+Number of moves simulated: 7,035,848
+Total time: 11370907 microseconds
+Time per move: 1 microseconds
+
+Did not win...
+Did not find the invincible Babas trick...
+Max move depth: 20
+Number of moves simulated: 40,644,488
+Total time: 75,540,009 microseconds
+Time per move: 1 microseconds
+
+Did not win...
+Did not find the invincible Babas trick...
+Max move depth: 20
+Number of moves simulated: 40,644,488
+Total time: 75,146,834 microseconds
+Time per move: 1 microseconds
+
+
+--
+After adding max depth to computed moves cache
+
+Did not win...
+Did not find the invincible Babas trick...
+Max move depth: 20
+Max cache depth: 15
+Number of moves simulated: 352,117,808
+Total time: 240,425,000 microseconds
+Time per move: 0 microseconds
+
+Did not win...
+Did not find the invincible Babas trick...
+Max move depth: 21
+Max cache depth: 20
+Number of moves simulated: 70,662,288
+Total time: 100 seconds
+Time per move: 1424 nanoseconds
+
+Did not win...
+Did not find the invincible Babas trick...
+Max move depth: 22
+Max cache depth: 20
+Number of moves simulated: 171,228,904
+Total time: 175 seconds
+Time per move: 1024 nanoseconds
+
+Did not win...
+Did not find the invincible Babas trick...
+Max move depth: 23
+Max cache depth: 20
+Total number of moves simulated (including cache hits): 521,934,076
+Cache size: 21,063,220 moves
+Number of cache hits: 19,581,268
+Number of unique, non-cached moves: 502,352,808
+Total time: 549 seconds
+Time per move: 1053 nanoseconds
+
+--
+
+Max depth 3 = 4 + 16 + 64 = 84 moves
+Max depth 5 = 4 + 16 + 64 + 256 + 1024 = 1364 moves (minus however many times both Babas died)
+
+60 
