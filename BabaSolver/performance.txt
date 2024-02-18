@@ -215,7 +215,49 @@ Time per move: 1053 nanoseconds
 
 --
 
-Max depth 3 = 4 + 16 + 64 = 84 moves
-Max depth 5 = 4 + 16 + 64 + 256 + 1024 = 1364 moves (minus however many times both Babas died)
+After getting rid of the outer perimeter of immovable objects
 
-60 
+Did not win...
+Did not find the invincible Babas trick...
+Max move depth: 20
+Max cache depth: 20
+Total number of moves simulated (including cache hits): 40,212,220
+Cache size: 20,802,916 moves
+Number of cache hits: 19,409,304
+Number of unique, non-cached moves: 20,802,916
+Total time: 71 seconds
+Time per move: 1790 nanoseconds
+
+--
+
+TotalMoves(n) = 4^1 + 4^2 + ... + 4^n, where n is the max move depth
+(Note: This formula ignores cached moves and other tree-pruning techniques.)
+
+TotalMoves(3) = 4 + 16 + 64 = 84 moves
+TotalMoves(5) = 4 + 16 + 64 + 256 + 1024 = 1364 moves
+TotalMoves(20) = 1,466,015,503,700 moves
+TotalMoves(25) = 1,501,199,875,790,164 moves
+TotalMoves(30) = 1,537,228,672,809,129,300 moves
+
+Simple Go program for TotalMoves():
+
+package main
+
+import (
+	"fmt"
+	"math"
+)
+
+const N = 30
+
+func totalMoves(maxDepth int) uint64 {
+	var total uint64 = 0
+	for i := 1; i <= maxDepth; i++ {
+		total += uint64(math.Pow(4, float64(i)))
+	}
+	return total
+}
+
+func main() {
+	fmt.Printf("%d\n", totalMoves(N))
+}
