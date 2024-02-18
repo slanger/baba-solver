@@ -230,6 +230,56 @@ Time per move: 1790 nanoseconds
 
 --
 
+After parallelizing
+
+Did not win...
+Max move depth: 20
+Parallelism depth: 2
+Max cache depth: 20
+Total number of moves simulated (including cache hits): 106,218,040
+Cache size: 56,325,000 moves
+Number of cache hits: 49,893,040
+Number of unique, non-cached moves: 56,325,000
+Total time: 53 seconds
+Time per move: 501 nanoseconds
+
+Did not win...
+Max move depth: 20
+Parallelism depth: 3
+Max cache depth: 20
+Total number of moves simulated (including cache hits): 140,551,348
+Cache size: 75,137,728 moves
+Number of cache hits: 65,413,620
+Number of unique, non-cached moves: 75,137,728
+Total time: 65 seconds
+Time per move: 464 nanoseconds
+
+Did not win...
+Max move depth: 23
+Parallelism depth: 2
+Max cache depth: 20
+Total number of moves simulated (including cache hits): 1,436,747,648
+Cache size: 56,325,000 moves
+Number of cache hits: 49,893,040
+Number of unique, non-cached moves: 1,386,854,608
+Number of parallel tree roots: 16
+Total time: 236 seconds
+Time per move: 164 nanoseconds
+
+Did not win...
+Max move depth: 24
+Parallelism depth: 2
+Max cache depth: 20
+Total number of moves simulated (including cache hits): 4,742,072,412
+Cache size: 56,325,000 moves
+Number of cache hits: 49,893,040
+Number of unique, non-cached moves: 4,692,179,372
+Number of parallel tree roots: 16
+Total time: 702 seconds
+Time per move: 148 nanoseconds
+
+--
+
 TotalMoves(n) = 4^1 + 4^2 + ... + 4^n, where n is the max move depth
 (Note: This formula ignores cached moves and other tree-pruning techniques.)
 

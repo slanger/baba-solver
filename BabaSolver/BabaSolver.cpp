@@ -12,14 +12,17 @@
 // * Add heuristic for preventing back-and-forth moves. OBSOLETE (see next item)
 // * Prune sub-trees based on if we've already calculated them. DONE
 // * Get rid of outer perimeter of immovable objects. DONE
-// * Parallelize the algorithm.
+// * Parallelize the algorithm. DONE
 
 #include <algorithm>
 #include <chrono>
 #include <cstddef>
 #include <cstdint>
+#include <cstdlib>
+#include <execution>
 #include <iostream>
 #include <memory>
+#include <mutex>
 #include <stack>
 #include <string>
 #include <unordered_set>
@@ -29,8 +32,9 @@
 
 // Tuning parameters - use these to trade off CPU usage, memory usage, and time to complete.
 static constexpr uint16_t MAX_TURN_DEPTH = 20;
+static constexpr uint16_t PARALLELISM_DEPTH = 2;
 static constexpr uint16_t CACHED_MOVES_MAX_TURN_DEPTH = 20;
-static constexpr uint64_t PRINT_EVERY_N_MOVES = 100'000;
+static constexpr uint64_t PRINT_EVERY_N_MOVES = 1'000'000;
 
 // Sentinel values
 static constexpr uint8_t BABA_DEAD = std::numeric_limits<uint8_t>::max();
@@ -91,7 +95,8 @@ static char GameObjectToChar(GameObject obj)
 	case GameObject::IS_TEXT: return '2';
 	case GameObject::PUSH_TEXT: return '3';
 	}
-	throw "Invalid GameObject";
+	// Should not be able to reach this point.
+	std::abort();
 }
 
 // Note: This does NOT check for Babas in the cell.
@@ -285,7 +290,8 @@ private:
 			delta_j = -1;
 			break;
 		default:
-			throw "Invalid direction";
+			// Should not be able to reach this code.
+			std::abort();
 		}
 
 		// If Baba is on the same space as the KEY (somehow), the Baba won't actually move the KEY.
@@ -631,45 +637,49 @@ int main()
 	stack.push(NextMove{ initial_state, Direction::LEFT });
 	initial_state.reset();
 
-	std::unordered_set<NextMove, NextMoveHash, NextMoveEqual> computed_moves;
-
-	uint64_t num_moves = 0;
-	uint64_t num_cache_hits = 0;
+	uint64_t total_num_moves = 0;
+	uint64_t total_cache_hits = 0;
 	bool won = false;
-	bool found_invincible_babas_trick = false;
+	// Really big TODO: This should be a hash set of GameStates, not NextMoves, since for caching
+	// purposes it shouldn't matter what the direction to apply is, just the state of the game.
+	std::unordered_set<NextMove, NextMoveHash, NextMoveEqual> computed_moves;
+	std::vector<std::shared_ptr<GameState>> parallelism_roots;
 	auto start_time = std::chrono::high_resolution_clock::now();
 	while (!stack.empty())
 	{
-		++num_moves;
-		if (num_moves % PRINT_EVERY_N_MOVES == 0)
+		++total_num_moves;
+		if (total_num_moves % PRINT_EVERY_N_MOVES == 0)
 		{
-			std::cout << "Calculating move #" << num_moves << " (" << FormatNumberWithSuffix(num_moves)
-				<< "), cache size = " << computed_moves.size() << " (" << FormatNumberWithSuffix(computed_moves.size())
+			std::string num_moves_str = FormatNumberWithSuffix(total_num_moves);
+			std::string cache_size_str = FormatNumberWithSuffix(computed_moves.size());
+			std::cout << "Calculating move #" << total_num_moves << " (" << num_moves_str
+				<< "), cache size = " << computed_moves.size() << " (" << cache_size_str
 				<< "), stack size = " << stack.size() << std::endl;
 		}
 
 		const NextMove& cur = stack.top();
 		if (computed_moves.find(cur) != computed_moves.end())
 		{
-			++num_cache_hits;
+			++total_cache_hits;
 			stack.pop();
 			continue;
 		}
+
 		std::shared_ptr<GameState> new_state = cur.state->ApplyMove(cur.dir_to_apply);
 		if (new_state->_won)
 		{
-			won = true;
-			std::cout << "WIN!!!\n";
+			std::cout << "WIN!!! Turn #" << new_state->_turn << "\n";
 			new_state->Print();
+			won = true;
 			break;
 		}
 		// Heuristic: If the Babas are on the same space, then we're close to winning and can end
 		// the search here.
 		if (new_state->BabasOnSameSpace())
 		{
-			found_invincible_babas_trick = true;
-			std::cout << "Found invincible Babas trick!!! Move #" << num_moves << ", turn #" << new_state->_turn << std::endl;
+			std::cout << "Found invincible Babas trick!!! Turn #" << new_state->_turn << "\n";
 			new_state->Print();
+			won = true;
 			break;
 		}
 
@@ -680,11 +690,14 @@ int main()
 		stack.pop();
 
 		// Heuristic: If one of the Babas dies, then prune that part of the tree.
-		if (!new_state->AllBabasAlive() || new_state->_turn >= MAX_TURN_DEPTH)
+		if (!new_state->AllBabasAlive())
 		{
-#if TESTING
-			new_state->Print();
-#endif
+			continue;
+		}
+
+		if (new_state->_turn >= PARALLELISM_DEPTH)
+		{
+			parallelism_roots.push_back(new_state);
 			continue;
 		}
 		stack.push(NextMove{ new_state, Direction::UP });
@@ -693,23 +706,135 @@ int main()
 		stack.push(NextMove{ new_state, Direction::LEFT });
 		new_state.reset();
 	}
+
+	std::size_t total_cache_size = computed_moves.size();
+	if (!won)
+	{
+		std::mutex mutex;
+		uint16_t next_thread_id = 0;
+		uint16_t num_threads_finished = 0;
+		uint16_t total_num_threads = parallelism_roots.size();
+		std::cout << "Finished the sequential portion. Now parallelizing into " << total_num_threads << " threads." << std::endl;
+		std::for_each(std::execution::par, parallelism_roots.begin(), parallelism_roots.end(),
+			[&mutex, &won, &total_num_moves, &total_cache_hits, &total_cache_size, &next_thread_id, &num_threads_finished, &total_num_threads](std::shared_ptr<GameState> state)
+			{
+				uint16_t thread_id = 0;
+				{
+					std::lock_guard<std::mutex> lock(mutex);
+					thread_id = next_thread_id++;
+				}
+
+				std::stack<NextMove> stack;
+				// Apply initial four directions to the stack.
+				stack.push(NextMove{ state, Direction::UP });
+				stack.push(NextMove{ state, Direction::RIGHT });
+				stack.push(NextMove{ state, Direction::DOWN });
+				stack.push(NextMove{ state, Direction::LEFT });
+
+				std::unordered_set<NextMove, NextMoveHash, NextMoveEqual> computed_moves;
+				uint64_t num_moves = 0;
+				uint64_t num_cache_hits = 0;
+				while (!stack.empty())
+				{
+					++num_moves;
+					if (num_moves % PRINT_EVERY_N_MOVES == 0)
+					{
+						std::string num_moves_str = FormatNumberWithSuffix(num_moves);
+						std::string cache_size_str = FormatNumberWithSuffix(computed_moves.size());
+						std::cout << "Thread " << thread_id << ": Calculating move #" << num_moves << " (" << num_moves_str
+							<< "), cache size = " << computed_moves.size() << " (" << cache_size_str
+							<< "), stack size = " << stack.size() << std::endl;
+					}
+
+					const NextMove& cur = stack.top();
+					if (computed_moves.find(cur) != computed_moves.end())
+					{
+						++num_cache_hits;
+						stack.pop();
+						continue;
+					}
+
+					std::shared_ptr<GameState> new_state = cur.state->ApplyMove(cur.dir_to_apply);
+					if (new_state->_won)
+					{
+						std::cout << "WIN!!! Turn #" << new_state->_turn << "\n";
+						new_state->Print();
+						{
+							std::lock_guard<std::mutex> lock(mutex);
+							won = true;
+						}
+						break;
+					}
+					// Heuristic: If the Babas are on the same space, then we're close to winning and can end
+					// the search here.
+					if (new_state->BabasOnSameSpace())
+					{
+						std::cout << "Found invincible Babas trick!!! Turn #" << new_state->_turn << "\n";
+						new_state->Print();
+						{
+							std::lock_guard<std::mutex> lock(mutex);
+							won = true;
+						}
+						break;
+					}
+
+					if (new_state->_turn <= CACHED_MOVES_MAX_TURN_DEPTH)
+					{
+						computed_moves.insert(cur);
+					}
+					stack.pop();
+
+					// Heuristic: If one of the Babas dies, then prune that part of the tree.
+					if (!new_state->AllBabasAlive())
+					{
+						continue;
+					}
+
+					if (new_state->_turn >= MAX_TURN_DEPTH)
+					{
+#if TESTING
+						new_state->Print();
+#endif
+						continue;
+					}
+					stack.push(NextMove{ new_state, Direction::UP });
+					stack.push(NextMove{ new_state, Direction::RIGHT });
+					stack.push(NextMove{ new_state, Direction::DOWN });
+					stack.push(NextMove{ new_state, Direction::LEFT });
+					new_state.reset();
+				}
+
+				uint16_t finished_thread_count = 0;
+				{
+					std::lock_guard<std::mutex> lock(mutex);
+					total_num_moves += num_moves;
+					total_cache_hits += num_cache_hits;
+					total_cache_size += computed_moves.size();
+					finished_thread_count = ++num_threads_finished;
+				}
+				std::cout << "Thread " << thread_id << " finished (" << finished_thread_count << "/" << total_num_threads << ")" << std::endl;
+			});
+	}
+
 	auto end_time = std::chrono::high_resolution_clock::now();
 	auto total_time = end_time - start_time;
 
-	if (!won)
+	if (won)
+	{
+		std::cout << "WIN!!!\n";
+	}
+	else
 	{
 		std::cout << "Did not win...\n";
 	}
-	if (!found_invincible_babas_trick)
-	{
-		std::cout << "Did not find the invincible Babas trick...\n";
-	}
 	std::cout << "Max move depth: " << MAX_TURN_DEPTH << "\n";
+	std::cout << "Parallelism depth: " << PARALLELISM_DEPTH << "\n";
 	std::cout << "Max cache depth: " << CACHED_MOVES_MAX_TURN_DEPTH << "\n";
-	std::cout << "Total number of moves simulated (including cache hits): " << FormatNumberWithCommas(num_moves) << "\n";
-	std::cout << "Cache size: " << FormatNumberWithCommas(computed_moves.size()) << " moves\n";
-	std::cout << "Number of cache hits: " << FormatNumberWithCommas(num_cache_hits) << "\n";
-	std::cout << "Number of unique, non-cached moves: " << FormatNumberWithCommas(num_moves - num_cache_hits) << "\n";
+	std::cout << "Total number of moves simulated (including cache hits): " << FormatNumberWithCommas(total_num_moves) << "\n";
+	std::cout << "Cache size: " << FormatNumberWithCommas(total_cache_size) << " moves\n";
+	std::cout << "Number of cache hits: " << FormatNumberWithCommas(total_cache_hits) << "\n";
+	std::cout << "Number of unique, non-cached moves: " << FormatNumberWithCommas(total_num_moves - total_cache_hits) << "\n";
+	std::cout << "Number of parallel tree roots: " << parallelism_roots.size() << "\n";
 	std::cout << "Total time: " << std::chrono::duration_cast<std::chrono::seconds>(total_time).count() << " seconds\n";
-	std::cout << "Time per move: " << (total_time.count() / num_moves) << " nanoseconds" << std::endl;
+	std::cout << "Time per move: " << (total_time.count() / total_num_moves) << " nanoseconds" << std::endl;
 }
