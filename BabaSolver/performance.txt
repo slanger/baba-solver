@@ -280,6 +280,58 @@ Time per move: 148 nanoseconds
 
 --
 
+After fixing caching (s/NextMove/GameState/ in the hash set)
+
+=== RESULTS ===
+Did not win...
+Config:
+  Max move depth: 20
+  Parallelism depth: 2
+  Max cache depth: 20
+Stats:
+  Total number of moves simulated (including cache hits): 42,707,016
+  Cache size: 21,799,076 moves
+  Number of cache hits: 20,908,207
+  Number of unique, non-cached moves: 21,798,809
+  Number of parallel tree roots: 14
+  Number of tree leaf game states: 8,150,145
+  Total time: 46 seconds
+  Time per move: 1086 nanoseconds
+
+=== RESULTS ===
+Did not win...
+Config:
+  Max move depth: 23
+  Parallelism depth: 2
+  Max cache depth: 20
+Stats:
+  Total number of moves simulated (including cache hits): 546,006,220
+  Cache size: 21,799,076 moves
+  Number of cache hits: 20,908,207
+  Number of unique, non-cached moves: 525,098,013
+  Number of parallel tree roots: 14
+  Number of tree leaf game states: 309,172,026
+  Total time: 106 seconds
+  Time per move: 194 nanoseconds
+
+=== RESULTS ===
+Did not win...
+Config:
+  Max move depth: 24
+  Parallelism depth: 2
+  Max cache depth: 20
+Stats:
+  Total number of moves simulated (including cache hits): 1,782,694,324
+  Cache size: 21,799,076 moves
+  Number of cache hits: 20,908,207
+  Number of unique, non-cached moves: 1,761,786,117
+  Number of parallel tree roots: 14
+  Number of tree leaf game states: 1,078,030,041
+  Total time: 280 seconds
+  Time per move: 157 nanoseconds
+
+--
+
 TotalMoves(n) = 4^1 + 4^2 + ... + 4^n, where n is the max move depth
 (Note: This formula ignores cached moves and other tree-pruning techniques.)
 

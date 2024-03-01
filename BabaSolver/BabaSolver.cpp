@@ -409,45 +409,6 @@ private:
 	}
 };
 
-struct NextMove
-{
-	std::shared_ptr<GameState> state;
-	Direction dir_to_apply;
-};
-
-struct NextMoveEqual
-{
-	bool operator()(const NextMove& lhs, const NextMove& rhs) const
-	{
-		if (lhs.dir_to_apply != rhs.dir_to_apply) return false;
-		// Turn number is checked because the remaining number of turns can affect the final
-		// outcome of the GameState.
-		if (lhs.state->_turn != rhs.state->_turn) return false;
-		if (lhs.state->_baba1.i != rhs.state->_baba1.i || lhs.state->_baba1.j != rhs.state->_baba1.j) return false;
-		if (lhs.state->_baba2.i != rhs.state->_baba2.i || lhs.state->_baba2.j != rhs.state->_baba2.j) return false;
-		for (uint8_t i = 0; i < GRID_HEIGHT; ++i)
-		{
-			for (uint8_t j = 0; j < GRID_WIDTH; ++j)
-			{
-				if (lhs.state->_grid[i][j] != rhs.state->_grid[i][j])
-					return false;
-			}
-		}
-		return true;
-	}
-};
-
-static std::size_t ApplyHash(uint32_t to_apply, std::size_t current_hash)
-{
-	// Note: I got this code from Stack Overflow somewhere. I have no idea how good or bad it is.
-	// TODO: Check how effective this hashing code is.
-	to_apply = ((to_apply >> 16) ^ to_apply) * 0x45d9f3b;
-	to_apply = ((to_apply >> 16) ^ to_apply) * 0x45d9f3b;
-	to_apply = (to_apply >> 16) ^ to_apply;
-	current_hash ^= static_cast<std::size_t>(to_apply) + 0x9e3779b9 + (current_hash << 6) + (current_hash >> 2);
-	return current_hash;
-}
-
 static uint16_t CombineUInt8s(uint8_t n1, uint8_t n2)
 {
 	return (static_cast<uint16_t>(n1) << 8) | n2;
@@ -463,23 +424,59 @@ static uint64_t CombineUInt32s(uint32_t n1, uint32_t n2)
 	return (static_cast<uint64_t>(n1) << 32) | n2;
 }
 
-struct NextMoveHash
+static std::size_t ApplyHash(uint32_t to_apply, std::size_t current_hash)
 {
-	std::size_t operator()(const NextMove& move) const
+	// Note: I got this code from Stack Overflow somewhere. I have no idea how good or bad it is.
+	// TODO: Check how effective this hashing code is.
+	to_apply = ((to_apply >> 16) ^ to_apply) * 0x45d9f3b;
+	to_apply = ((to_apply >> 16) ^ to_apply) * 0x45d9f3b;
+	to_apply = (to_apply >> 16) ^ to_apply;
+	current_hash ^= static_cast<std::size_t>(to_apply) + 0x9e3779b9 + (current_hash << 6) + (current_hash >> 2);
+	return current_hash;
+}
+
+struct GameStateHash
+{
+	std::size_t operator()(const std::shared_ptr<GameState>& state) const
 	{
-		std::size_t hash = CombineUInt16s(CombineUInt8s(move.state->_baba1.i, move.state->_baba1.j),
-			CombineUInt8s(move.state->_baba2.i, move.state->_baba2.j));
-		uint16_t a = CombineUInt8s(static_cast<uint8_t>(move.dir_to_apply), move.state->_turn);
-		hash = ApplyHash(static_cast<uint32_t>(a), hash);
+		std::size_t hash = static_cast<std::size_t>(state->_turn) * 37;
+		uint32_t babas = CombineUInt16s(CombineUInt8s(state->_baba1.i, state->_baba1.j),
+			CombineUInt8s(state->_baba2.i, state->_baba2.j));
+		hash = ApplyHash(babas, hash);
 		for (uint8_t i = 0; i < GRID_HEIGHT; ++i)
 		{
 			for (uint8_t j = 0; j < GRID_WIDTH; ++j)
 			{
-				hash = ApplyHash(move.state->_grid[i][j], hash);
+				hash = ApplyHash(state->_grid[i][j], hash);
 			}
 		}
 		return hash;
 	}
+};
+
+struct GameStateEqual
+{
+	bool operator()(const std::shared_ptr<GameState>& lhs, const std::shared_ptr<GameState>& rhs) const
+	{
+		if (lhs->_turn != rhs->_turn) return false;
+		if (lhs->_baba1.i != rhs->_baba1.i || lhs->_baba1.j != rhs->_baba1.j) return false;
+		if (lhs->_baba2.i != rhs->_baba2.i || lhs->_baba2.j != rhs->_baba2.j) return false;
+		for (uint8_t i = 0; i < GRID_HEIGHT; ++i)
+		{
+			for (uint8_t j = 0; j < GRID_WIDTH; ++j)
+			{
+				if (lhs->_grid[i][j] != rhs->_grid[i][j])
+					return false;
+			}
+		}
+		return true;
+	}
+};
+
+struct NextMove
+{
+	std::shared_ptr<GameState> state;
+	Direction dir_to_apply;
 };
 
 static std::string FormatNumberWithSuffix(uint64_t n)
@@ -635,14 +632,13 @@ int main()
 	stack.push(NextMove{ initial_state, Direction::RIGHT });
 	stack.push(NextMove{ initial_state, Direction::DOWN });
 	stack.push(NextMove{ initial_state, Direction::LEFT });
+	std::unordered_set<std::shared_ptr<GameState>, GameStateHash, GameStateEqual> seen_states;
+	seen_states.insert(initial_state);
 	initial_state.reset();
 
 	uint64_t total_num_moves = 0;
 	uint64_t total_cache_hits = 0;
 	bool won = false;
-	// Really big TODO: This should be a hash set of GameStates, not NextMoves, since for caching
-	// purposes it shouldn't matter what the direction to apply is, just the state of the game.
-	std::unordered_set<NextMove, NextMoveHash, NextMoveEqual> computed_moves;
 	std::vector<std::shared_ptr<GameState>> parallelism_roots;
 	auto start_time = std::chrono::high_resolution_clock::now();
 	while (!stack.empty())
@@ -650,22 +646,14 @@ int main()
 		++total_num_moves;
 		if (total_num_moves % PRINT_EVERY_N_MOVES == 0)
 		{
-			std::string num_moves_str = FormatNumberWithSuffix(total_num_moves);
-			std::string cache_size_str = FormatNumberWithSuffix(computed_moves.size());
-			std::cout << "Calculating move #" << total_num_moves << " (" << num_moves_str
-				<< "), cache size = " << computed_moves.size() << " (" << cache_size_str
+			std::cout << "Calculating move #" << total_num_moves << " (" << FormatNumberWithSuffix(total_num_moves)
+				<< "), cache size = " << seen_states.size() << " (" << FormatNumberWithSuffix(seen_states.size())
 				<< "), stack size = " << stack.size() << std::endl;
 		}
 
 		const NextMove& cur = stack.top();
-		if (computed_moves.find(cur) != computed_moves.end())
-		{
-			++total_cache_hits;
-			stack.pop();
-			continue;
-		}
-
 		std::shared_ptr<GameState> new_state = cur.state->ApplyMove(cur.dir_to_apply);
+		stack.pop();
 		if (new_state->_won)
 		{
 			std::cout << "WIN!!! Turn #" << new_state->_turn << "\n";
@@ -683,11 +671,15 @@ int main()
 			break;
 		}
 
+		if (seen_states.contains(new_state))
+		{
+			++total_cache_hits;
+			continue;
+		}
 		if (new_state->_turn <= CACHED_MOVES_MAX_TURN_DEPTH)
 		{
-			computed_moves.insert(cur);
+			seen_states.insert(new_state);
 		}
-		stack.pop();
 
 		// Heuristic: If one of the Babas dies, then prune that part of the tree.
 		if (!new_state->AllBabasAlive())
@@ -707,16 +699,17 @@ int main()
 		new_state.reset();
 	}
 
-	std::size_t total_cache_size = computed_moves.size();
+	std::size_t total_cache_size = seen_states.size();
+	uint64_t leaf_state_count = 0;
 	if (!won)
 	{
 		std::mutex mutex;
 		uint16_t next_thread_id = 0;
 		uint16_t num_threads_finished = 0;
-		uint16_t total_num_threads = parallelism_roots.size();
+		uint16_t total_num_threads = static_cast<uint16_t>(parallelism_roots.size());
 		std::cout << "Finished the sequential portion. Now parallelizing into " << total_num_threads << " threads." << std::endl;
 		std::for_each(std::execution::par, parallelism_roots.begin(), parallelism_roots.end(),
-			[&mutex, &won, &total_num_moves, &total_cache_hits, &total_cache_size, &next_thread_id, &num_threads_finished, &total_num_threads](std::shared_ptr<GameState> state)
+			[&mutex, &seen_states, &won, &total_num_moves, &total_cache_hits, &total_cache_size, &leaf_state_count, &next_thread_id, &num_threads_finished, &total_num_threads](std::shared_ptr<GameState> state)
 			{
 				uint16_t thread_id = 0;
 				{
@@ -731,30 +724,25 @@ int main()
 				stack.push(NextMove{ state, Direction::DOWN });
 				stack.push(NextMove{ state, Direction::LEFT });
 
-				std::unordered_set<NextMove, NextMoveHash, NextMoveEqual> computed_moves;
+				std::unordered_set<std::shared_ptr<GameState>, GameStateHash, GameStateEqual> local_seen_states = seen_states;
 				uint64_t num_moves = 0;
 				uint64_t num_cache_hits = 0;
+				uint64_t leaf_count = 0;
 				while (!stack.empty())
 				{
 					++num_moves;
 					if (num_moves % PRINT_EVERY_N_MOVES == 0)
 					{
-						std::string num_moves_str = FormatNumberWithSuffix(num_moves);
-						std::string cache_size_str = FormatNumberWithSuffix(computed_moves.size());
-						std::cout << "Thread " << thread_id << ": Calculating move #" << num_moves << " (" << num_moves_str
-							<< "), cache size = " << computed_moves.size() << " (" << cache_size_str
+						// Lock the mutex so that print statements don't get jumbled.
+						std::lock_guard<std::mutex> lock(mutex);
+						std::cout << "Thread " << thread_id << ": Calculating move #" << num_moves << " (" << FormatNumberWithSuffix(num_moves)
+							<< "), cache size = " << local_seen_states.size() << " (" << FormatNumberWithSuffix(local_seen_states.size())
 							<< "), stack size = " << stack.size() << std::endl;
 					}
 
 					const NextMove& cur = stack.top();
-					if (computed_moves.find(cur) != computed_moves.end())
-					{
-						++num_cache_hits;
-						stack.pop();
-						continue;
-					}
-
 					std::shared_ptr<GameState> new_state = cur.state->ApplyMove(cur.dir_to_apply);
+					stack.pop();
 					if (new_state->_won)
 					{
 						std::cout << "WIN!!! Turn #" << new_state->_turn << "\n";
@@ -778,11 +766,15 @@ int main()
 						break;
 					}
 
+					if (local_seen_states.contains(new_state))
+					{
+						++num_cache_hits;
+						continue;
+					}
 					if (new_state->_turn <= CACHED_MOVES_MAX_TURN_DEPTH)
 					{
-						computed_moves.insert(cur);
+						local_seen_states.insert(new_state);
 					}
-					stack.pop();
 
 					// Heuristic: If one of the Babas dies, then prune that part of the tree.
 					if (!new_state->AllBabasAlive())
@@ -795,6 +787,7 @@ int main()
 #if TESTING
 						new_state->Print();
 #endif
+						++leaf_count;
 						continue;
 					}
 					stack.push(NextMove{ new_state, Direction::UP });
@@ -804,21 +797,27 @@ int main()
 					new_state.reset();
 				}
 
-				uint16_t finished_thread_count = 0;
+				// Thread finished - print results.
 				{
 					std::lock_guard<std::mutex> lock(mutex);
+					uint16_t finished_thread_count = ++num_threads_finished;
 					total_num_moves += num_moves;
 					total_cache_hits += num_cache_hits;
-					total_cache_size += computed_moves.size();
-					finished_thread_count = ++num_threads_finished;
+					total_cache_size += local_seen_states.size();
+					leaf_state_count += leaf_count;
+					// Print inside the critical section so that print statements don't get jumbled.
+					std::cout << "Thread " << thread_id << " finished (" << finished_thread_count << "/" << total_num_threads << "): Moves="
+						<< FormatNumberWithSuffix(num_moves) << ", Cache=" << FormatNumberWithSuffix(local_seen_states.size()) << ", Leaves="
+						<< FormatNumberWithSuffix(leaf_count) << std::endl;
 				}
-				std::cout << "Thread " << thread_id << " finished (" << finished_thread_count << "/" << total_num_threads << ")" << std::endl;
 			});
 	}
 
 	auto end_time = std::chrono::high_resolution_clock::now();
 	auto total_time = end_time - start_time;
 
+	// Print results
+	std::cout << "\n=== RESULTS ===\n";
 	if (won)
 	{
 		std::cout << "WIN!!!\n";
@@ -827,14 +826,18 @@ int main()
 	{
 		std::cout << "Did not win...\n";
 	}
-	std::cout << "Max move depth: " << MAX_TURN_DEPTH << "\n";
-	std::cout << "Parallelism depth: " << PARALLELISM_DEPTH << "\n";
-	std::cout << "Max cache depth: " << CACHED_MOVES_MAX_TURN_DEPTH << "\n";
-	std::cout << "Total number of moves simulated (including cache hits): " << FormatNumberWithCommas(total_num_moves) << "\n";
-	std::cout << "Cache size: " << FormatNumberWithCommas(total_cache_size) << " moves\n";
-	std::cout << "Number of cache hits: " << FormatNumberWithCommas(total_cache_hits) << "\n";
-	std::cout << "Number of unique, non-cached moves: " << FormatNumberWithCommas(total_num_moves - total_cache_hits) << "\n";
-	std::cout << "Number of parallel tree roots: " << parallelism_roots.size() << "\n";
-	std::cout << "Total time: " << std::chrono::duration_cast<std::chrono::seconds>(total_time).count() << " seconds\n";
-	std::cout << "Time per move: " << (total_time.count() / total_num_moves) << " nanoseconds" << std::endl;
+	std::cout << "Config:\n";
+	std::cout << "  Max move depth: " << MAX_TURN_DEPTH << "\n";
+	std::cout << "  Parallelism depth: " << PARALLELISM_DEPTH << "\n";
+	std::cout << "  Max cache depth: " << CACHED_MOVES_MAX_TURN_DEPTH << "\n";
+	std::cout << "Stats:\n";
+	std::cout << "  Total number of moves simulated (including cache hits): " << FormatNumberWithCommas(total_num_moves) << "\n";
+	std::cout << "  Cache size: " << FormatNumberWithCommas(total_cache_size) << " moves\n";
+	std::cout << "  Number of cache hits: " << FormatNumberWithCommas(total_cache_hits) << "\n";
+	std::cout << "  Number of unique, non-cached moves: " << FormatNumberWithCommas(total_num_moves - total_cache_hits) << "\n";
+	std::cout << "  Number of parallel tree roots: " << FormatNumberWithCommas(parallelism_roots.size()) << "\n";
+	std::cout << "  Number of tree leaf game states: " << FormatNumberWithCommas(leaf_state_count) << "\n";
+	std::cout << "  Total time: " << std::chrono::duration_cast<std::chrono::seconds>(total_time).count() << " seconds\n";
+	std::cout << "  Time per move: " << (total_time.count() / total_num_moves) << " nanoseconds\n";
+	std::cout << std::endl;
 }
