@@ -95,13 +95,13 @@ namespace BabaSolver
 				break;
 			}
 
-			if (seen_states.contains(new_state))
-			{
-				++total_cache_hits;
-				continue;
-			}
 			if (new_state->_turn <= CACHED_MOVES_MAX_TURN_DEPTH)
 			{
+				if (seen_states.contains(new_state))
+				{
+					++total_cache_hits;
+					continue;
+				}
 				seen_states.insert(new_state);
 			}
 
@@ -184,13 +184,13 @@ namespace BabaSolver
 							break;
 						}
 
-						if (local_seen_states.contains(new_state))
-						{
-							++num_cache_hits;
-							continue;
-						}
 						if (new_state->_turn <= CACHED_MOVES_MAX_TURN_DEPTH)
 						{
+							if (local_seen_states.contains(new_state))
+							{
+								++num_cache_hits;
+								continue;
+							}
 							local_seen_states.insert(new_state);
 						}
 
@@ -202,9 +202,6 @@ namespace BabaSolver
 
 						if (new_state->_turn >= MAX_TURN_DEPTH)
 						{
-#if TESTING
-							new_state->Print();
-#endif
 							++leaf_count;
 							continue;
 						}
