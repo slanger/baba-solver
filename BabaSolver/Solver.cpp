@@ -48,7 +48,7 @@ namespace BabaSolver
 		return s;
 	}
 
-	std::shared_ptr<GameState> Solve(const std::shared_ptr<GameState>& initial_state)
+	std::shared_ptr<GameState> Solve(const std::shared_ptr<GameState>& initial_state, const SolverOptions& options)
 	{
 		std::cout << "Solving with initial state:\n";
 		initial_state->Print();
@@ -70,7 +70,7 @@ namespace BabaSolver
 		while (!stack.empty())
 		{
 			++total_num_moves;
-			if (total_num_moves % PRINT_EVERY_N_MOVES == 0)
+			if (total_num_moves % options.print_every_n_moves == 0)
 			{
 				std::cout << "Calculating move #" << total_num_moves << " (" << FormatNumberWithSuffix(total_num_moves)
 					<< "), cache size = " << seen_states.size() << " (" << FormatNumberWithSuffix(seen_states.size())
@@ -95,7 +95,7 @@ namespace BabaSolver
 				break;
 			}
 
-			if (new_state->_turn <= CACHED_MOVES_MAX_TURN_DEPTH)
+			if (new_state->_turn <= options.max_cache_depth)
 			{
 				if (seen_states.contains(new_state))
 				{
@@ -111,7 +111,7 @@ namespace BabaSolver
 				continue;
 			}
 
-			if (new_state->_turn >= PARALLELISM_DEPTH)
+			if (new_state->_turn >= options.parallelism_depth)
 			{
 				parallelism_roots.push_back(new_state);
 				continue;
@@ -133,7 +133,7 @@ namespace BabaSolver
 			uint16_t total_num_threads = static_cast<uint16_t>(parallelism_roots.size());
 			std::cout << "Finished the sequential portion. Now parallelizing into " << total_num_threads << " threads." << std::endl;
 			std::for_each(std::execution::par, parallelism_roots.begin(), parallelism_roots.end(),
-				[&mutex, &seen_states, &winning_state, &total_num_moves, &total_cache_hits, &total_cache_size, &leaf_state_count, &next_thread_id, &num_threads_finished, &total_num_threads](std::shared_ptr<GameState> state)
+				[&options, &mutex, &seen_states, &winning_state, &total_num_moves, &total_cache_hits, &total_cache_size, &leaf_state_count, &next_thread_id, &num_threads_finished, &total_num_threads](std::shared_ptr<GameState> state)
 				{
 					uint16_t thread_id = 0;
 					{
@@ -155,7 +155,7 @@ namespace BabaSolver
 					while (!stack.empty())
 					{
 						++num_moves;
-						if (num_moves % PRINT_EVERY_N_MOVES == 0)
+						if (num_moves % options.print_every_n_moves == 0)
 						{
 							// Lock the mutex so that print statements don't get jumbled.
 							std::lock_guard<std::mutex> lock(mutex);
@@ -184,7 +184,7 @@ namespace BabaSolver
 							break;
 						}
 
-						if (new_state->_turn <= CACHED_MOVES_MAX_TURN_DEPTH)
+						if (new_state->_turn <= options.max_cache_depth)
 						{
 							if (local_seen_states.contains(new_state))
 							{
@@ -244,8 +244,8 @@ namespace BabaSolver
 		}
 		std::cout << "Config:\n";
 		std::cout << "  Max move depth: " << MAX_TURN_DEPTH << "\n";
-		std::cout << "  Parallelism depth: " << PARALLELISM_DEPTH << "\n";
-		std::cout << "  Max cache depth: " << CACHED_MOVES_MAX_TURN_DEPTH << "\n";
+		std::cout << "  Parallelism depth: " << options.parallelism_depth << "\n";
+		std::cout << "  Max cache depth: " << options.max_cache_depth << "\n";
 		std::cout << "Stats:\n";
 		std::cout << "  Total number of moves simulated (including cache hits): " << FormatNumberWithCommas(total_num_moves) << "\n";
 		std::cout << "  Cache size: " << FormatNumberWithCommas(total_cache_size) << " moves\n";

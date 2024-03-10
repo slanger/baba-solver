@@ -8,6 +8,7 @@
 TEST(SolverTest, FindsSolution)
 {
 	std::shared_ptr<BabaSolver::GameState> initial_state = BabaSolver::TestLevel();
-	std::shared_ptr<BabaSolver::GameState> winning_state = BabaSolver::Solve(initial_state);
+	BabaSolver::SolverOptions options;
+	std::shared_ptr<BabaSolver::GameState> winning_state = BabaSolver::Solve(initial_state, options);
 	ASSERT_TRUE(winning_state);
 }
