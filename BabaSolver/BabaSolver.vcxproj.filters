@@ -29,9 +29,6 @@
     <ClInclude Include="GameState.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Parameters.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Solver.h">
       <Filter>Header Files</Filter>
     </ClInclude>

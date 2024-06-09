@@ -12,16 +12,14 @@
 #include <unordered_set>
 #include <vector>
 
-#include "Parameters.h"
-
 #include "GameState.h"
 
 namespace BabaSolver
 {
-	static constexpr uint8_t DOOR_START_I = 12;
-	static constexpr uint8_t DOOR_START_J = 4;
+	static constexpr int8_t DOOR_I = 12;
+	static constexpr int8_t DOOR_J = 4;
 
-	static constexpr uint8_t BABA_DEAD = std::numeric_limits<uint8_t>::max();
+	static constexpr int8_t BABA_DEAD = -1;
 
 	static char GameObjectToChar(GameObject obj)
 	{
@@ -38,6 +36,7 @@ namespace BabaSolver
 		case GameObject::PUSH_TEXT: return '3';
 		}
 		// Should not be able to reach this point.
+		std::cerr << "GameObject isn't set in GameObjectToChar(): " << static_cast<uint16_t>(obj) << std::endl;
 		std::abort();
 	}
 
@@ -101,99 +100,269 @@ namespace BabaSolver
 	static GameObject ALWAYS_MOVABLE_OBJECTS[] = {
 		GameObject::KEY, GameObject::ROCK_TEXT, GameObject::IS_TEXT, GameObject::PUSH_TEXT };
 
-	GameState::GameState(Coordinate baba1, Coordinate baba2, Coordinate is_text, bool rock_is_push_active)
-		: _turn(0), _baba1(baba1), _baba2(baba2), _is_text(is_text), _rock_is_push_active(rock_is_push_active) {
-		for (uint8_t i = 0; i < GRID_HEIGHT; ++i)
+	GameState::GameState(uint16_t grid[GRID_HEIGHT][GRID_WIDTH], Coordinate baba1, Coordinate baba2)
+		: _baba1(baba1), _baba2(baba2), _turn(0), _key({ -1, -1 }), _is_text({ -1, -1 }), _rock_is_push_active()
+	{
+		for (int8_t i = 0; i < GRID_HEIGHT; ++i)
 		{
-			for (uint8_t j = 0; j < GRID_WIDTH; ++j)
+			for (int8_t j = 0; j < GRID_WIDTH; ++j)
 			{
-				_grid[i][j] = 0;
+				_grid[i][j] = grid[i][j];
+				if (CellContainsGameObject(grid[i][j], GameObject::KEY))
+				{
+					_key.i = i;
+					_key.j = j;
+				}
+				if (CellContainsGameObject(grid[i][j], GameObject::IS_TEXT))
+				{
+					_is_text.i = i;
+					_is_text.j = j;
+				}
 			}
 		}
-		for (uint16_t i = 0; i < MAX_TURN_DEPTH; ++i)
+		if (_key.i == -1 || _is_text.i == -1 || !CellContainsGameObject(grid[DOOR_I][DOOR_J], GameObject::DOOR))
+		{
+			// Programmer error
+			std::cerr << "Invalid GameState" << std::endl;
+			std::abort();
+		}
+		for (int i = 0; i < MAX_TURN_COUNT; ++i)
+		{
+			_moves[i] = Direction::NO_DIRECTION;
+		}
+		RecalculateState();
+	}
+
+	GameState::GameState(const GameState& other)
+		: _baba1(other._baba1), _baba2(other._baba2), _turn(other._turn), _key(other._key), _is_text(other._is_text), _rock_is_push_active(other._rock_is_push_active)
+	{
+		std::copy(&other._grid[0][0], &other._grid[0][0] + GRID_CELL_COUNT, &_grid[0][0]);
+		std::copy(&other._moves[0], &other._moves[0] + other._turn, &_moves[0]);
+	}
+
+	void GameState::ResetContext()
+	{
+		_turn = 0;
+		for (int i = 0; i < MAX_TURN_COUNT; ++i)
 		{
 			_moves[i] = Direction::NO_DIRECTION;
 		}
 	}
 
-	GameState::GameState(uint8_t turn, uint16_t grid[GRID_HEIGHT][GRID_WIDTH], Direction moves[MAX_TURN_DEPTH],
-		Coordinate baba1, Coordinate baba2, Coordinate is_text, bool rock_is_push_active)
-		: _turn(turn), _baba1(baba1), _baba2(baba2), _is_text(is_text), _rock_is_push_active(rock_is_push_active) {
-		std::copy(&grid[0][0], &grid[0][0] + GRID_CELL_COUNT, &_grid[0][0]);
-		std::copy(&moves[0], &moves[0] + MAX_TURN_DEPTH, &_moves[0]);
-	}
-
-	std::shared_ptr<GameState> GameState::ApplyMove(Direction direction)
+	std::shared_ptr<GameState> GameState::ApplyMove(Direction direction) const
 	{
-		std::shared_ptr<GameState> new_state = std::make_shared<GameState>(
-			_turn + 1, _grid, _moves, _baba1, _baba2, _is_text, _rock_is_push_active);
+		std::shared_ptr<GameState> new_state = std::make_shared<GameState>(*this);
 		new_state->MoveBaba(new_state->_baba1, direction);
 		new_state->MoveBaba(new_state->_baba2, direction);
 		new_state->RecalculateState();
-		new_state->_moves[new_state->_turn - 1] = direction;
+		new_state->_moves[new_state->_turn] = direction;
+		new_state->_turn += 1;
 		return new_state;
 	}
 
 	bool GameState::HaveWon() const
 	{
 		// Optimization: The Door's coordinates are hard-coded because it doesn't move.
-		return CellContainsGameObject(_grid[DOOR_START_I][DOOR_START_J], GameObject::KEY);
+		return CellContainsGameObject(_grid[DOOR_I][DOOR_J], GameObject::KEY);
 	}
 
-	bool GameState::AllBabasAlive() const
+	bool GameState::CheckIfPossibleToWin() const
 	{
-		return _baba1.i != BABA_DEAD && _baba2.i != BABA_DEAD;
-	}
-
-	bool GameState::BabasOnSameSpace() const
-	{
-		if (_baba1.i == BABA_DEAD || _baba2.i == BABA_DEAD)
+		if (!AllBabasAlive())
 			return false;
-		return _baba1.i == _baba2.i && _baba1.j == _baba2.j;
+
+		// If any of the text objects are *not* on the upper right platform or to the right of it,
+		// then it's impossible to win.
+		if (_is_text.i <= 2 || _is_text.i >= 8 || _is_text.j <= 9)
+			return false;
+
+		for (int8_t i = 0; i <= 2; ++i)
+		{
+			for (int8_t j = 10; j <= 17; ++j)
+			{
+				if (CellContainsGameObject(_grid[i][j], GameObject::ROCK_TEXT) || CellContainsGameObject(_grid[i][j], GameObject::PUSH_TEXT))
+					return false;
+			}
+		}
+		for (int8_t i = 8; i <= 10; ++i)
+		{
+			for (int8_t j = 10; j <= 17; ++j)
+			{
+				if (CellContainsGameObject(_grid[i][j], GameObject::ROCK_TEXT) || CellContainsGameObject(_grid[i][j], GameObject::PUSH_TEXT))
+					return false;
+			}
+		}
+		for (int8_t i = 3; i <= 7; ++i)
+		{
+			for (int8_t j = 7; j <= 9; ++j)
+			{
+				if (CellContainsGameObject(_grid[i][j], GameObject::ROCK_TEXT) || CellContainsGameObject(_grid[i][j], GameObject::PUSH_TEXT))
+					return false;
+			}
+		}
+		return true;
 	}
 
-	void GameState::Print() const
+	int GameState::CalculateScore() const
+	{
+		if (!CheckIfPossibleToWin())
+			return -1'000'000;
+
+		// First milestone: The three rocks are moved in between the two upper platforms. This
+		// creates a "bridge" between the two platforms.
+		int score = 0;
+		int8_t rock_row = -1;
+		for (int8_t i = 3; i <= 7; ++i)
+		{
+			int rock_count = 0;
+			for (int8_t j = 7; j <= 9; ++j)
+			{
+				if (CellContainsGameObject(_grid[i][j], GameObject::ROCK))
+					++rock_count;
+			}
+			switch (rock_count)
+			{
+			case 1:
+				score += 100;
+				break;
+			case 2:
+				score += 1'000;
+				break;
+			case 3:
+				score += 10'000;
+				rock_row = i;
+				break;
+			default:
+				break;
+			}
+		}
+
+		// Second milestone: The text blocks are moved to the right of the upper right platform and
+		// are aligned with the rocks that are in between the upper platforms. This lets the player
+		// move the Babas closer together (over the rocks and stopped on the right by the text
+		// blocks).
+		if (rock_row != -1)
+		{
+			if (!CheckIfTextCanBeAlignedWithRocks(rock_row))
+				return -1;
+
+			int text_aligned_count = 0;
+			if (_is_text.i == rock_row)
+				++text_aligned_count;
+			for (int8_t j = 10; j <= 17; ++j)
+			{
+				if (CellContainsGameObject(_grid[rock_row][j], GameObject::ROCK_TEXT) || CellContainsGameObject(_grid[rock_row][j], GameObject::PUSH_TEXT))
+					++text_aligned_count;
+			}
+			switch (text_aligned_count)
+			{
+			case 1:
+				score += 1'000;
+				break;
+			case 2:
+				score += 10'000;
+				break;
+			case 3:
+				score += _rock_is_push_active ? 100'000 : 1'000'000;
+				break;
+			default:
+				break;
+			}
+		}
+
+		// Third milestone: Both Babas are on the same space. After this point, the player can move
+		// the Babas freely and move the key to the door.
+		if (BabasOnSameSpace())
+		{
+			score += 10'000'000;
+		}
+
+		// Tie breaker: The distance between the key and the door.
+		int distance = std::abs(_key.i - DOOR_I) + std::abs(_key.j - DOOR_J);
+		score += 100 - distance;
+		return score;
+	}
+
+	void GameState::PrintGrid() const
 	{
 		GameObject objects_by_priority[] = {
-				GameObject::ROCK_TEXT,
-				GameObject::IS_TEXT,
-				GameObject::PUSH_TEXT,
-				GameObject::DOOR,
-				GameObject::KEY,
-				GameObject::ROCK,
 				GameObject::IMMOVABLE,
+				GameObject::KEY,
+				GameObject::DOOR,
+				GameObject::ROCK,
+				GameObject::PUSH_TEXT,
+				GameObject::IS_TEXT,
+				GameObject::ROCK_TEXT,
 				GameObject::TILE,
 		};
 		std::string perimeter(GRID_WIDTH + 2, 'X');
 		std::cout << perimeter << '\n';
-		for (uint8_t i = 0; i < GRID_HEIGHT; ++i)
+		for (int8_t i = 0; i < GRID_HEIGHT; ++i)
 		{
 			std::cout << 'X';
-			for (uint8_t j = 0; j < GRID_WIDTH; ++j)
+			for (int8_t j = 0; j < GRID_WIDTH; ++j)
 			{
 				if ((i == _baba1.i && j == _baba1.j) || (i == _baba2.i && j == _baba2.j))
 				{
 					std::cout << 'B';
 					continue;
 				}
-				if (CellIsEmpty(_grid[i][j]))
-				{
-					std::cout << ' ';
-					continue;
-				}
 
+				bool found_obj = false;
 				for (GameObject obj : objects_by_priority)
 				{
 					if (CellContainsGameObject(_grid[i][j], obj))
 					{
 						std::cout << GameObjectToChar(obj);
+						found_obj = true;
 						break;
 					}
+				}
+				if (found_obj)
+					continue;
+
+				if (CellIsEmpty(_grid[i][j]))
+				{
+					std::cout << ' ';
+				}
+				else
+				{
+					// Programmer error
+					std::cerr << "Unable to print GameState grid cell: " << _grid[i][j] << std::endl;
+					std::abort();
 				}
 			}
 			std::cout << "X\n";
 		}
 		std::cout << perimeter << std::endl;
+	}
+
+	void GameState::PrintMoves() const
+	{
+		std::cout << static_cast<uint32_t>(_turn) << " moves:";
+		for (int i = 0; i < _turn; ++i)
+		{
+			switch (_moves[i])
+			{
+			case Direction::UP:
+				std::cout << " U";
+				break;
+			case Direction::RIGHT:
+				std::cout << " R";
+				break;
+			case Direction::DOWN:
+				std::cout << " D";
+				break;
+			case Direction::LEFT:
+				std::cout << " L";
+				break;
+			default:
+				// Should not be able to reach this code.
+				std::cerr << "Invalid direction in GameState::PrintMoves(): " << static_cast<uint32_t>(_moves[i]) << std::endl;
+				std::abort();
+			}
+		}
+		std::cout << std::endl;
 	}
 
 	void GameState::MoveBaba(Coordinate& baba, Direction direction)
@@ -223,11 +392,14 @@ namespace BabaSolver
 			break;
 		default:
 			// Should not be able to reach this code.
+			std::cerr << "Invalid direction in GameState::MoveBaba(): " << static_cast<uint32_t>(direction) << std::endl;
 			std::abort();
 		}
 
-		// If Baba is on the same space as the KEY (somehow), the Baba won't actually move the KEY.
-		// Setting prev_cell to 0 prevents the KEY from being moved.
+		// Check if the cell that the Baba wants to move to is open, and, if so, move all the
+		// objects in that cell.
+		// If Baba is on the same space as the key (somehow), the Baba won't actually move the key.
+		// Setting prev_cell to 0 prevents the key from being moved.
 		bool can_move = CheckCellAndMoveObjects(baba.i + delta_i, baba.j + delta_j, delta_i, delta_j, 0);
 		if (!can_move)
 			return;
@@ -235,13 +407,13 @@ namespace BabaSolver
 		baba.j += delta_j;
 	}
 
-	bool GameState::CheckCellAndMoveObjects(uint8_t i, uint8_t j, int8_t delta_i, int8_t delta_j, uint16_t prev_cell)
+	bool GameState::CheckCellAndMoveObjects(int8_t i, int8_t j, int8_t delta_i, int8_t delta_j, uint16_t prev_cell)
 	{
 		uint16_t cell = _grid[i][j];
 		if (CellContainsGameObject(cell, GameObject::IMMOVABLE))
 			return false;
-		// Edge case: If the KEY is the only movable object in the previous cell and the current
-		// cell contains the DOOR, then we can push the KEY into the DOOR (which is how we win).
+		// Edge case: If the key is the only movable object in the previous cell and the current
+		// cell contains the door, then we can push the key into the door (which is how we win).
 		if (CellContainsGameObject(cell, GameObject::DOOR))
 		{
 			if (CellContainsGameObject(prev_cell, GameObject::KEY))
@@ -259,7 +431,10 @@ namespace BabaSolver
 		// there is space for the object to move.
 		if (WillGoOutOfBounds(i, j, delta_i, delta_j))
 			return false;
-		bool can_move = CheckCellAndMoveObjects(i + delta_i, j + delta_j, delta_i, delta_j, _grid[i][j]);
+
+		int8_t next_i = i + delta_i;
+		int8_t next_j = j + delta_j;
+		bool can_move = CheckCellAndMoveObjects(next_i, next_j, delta_i, delta_j, _grid[i][j]);
 		if (!can_move)
 			return false;
 
@@ -270,17 +445,22 @@ namespace BabaSolver
 			if (!CellContainsGameObject(_grid[i][j], obj))
 				continue;
 			RemoveFromCellInPlace(_grid[i][j], obj);
-			AddToCellInPlace(_grid[i + delta_i][j + delta_j], obj);
+			AddToCellInPlace(_grid[next_i][next_j], obj);
 			if (obj == GameObject::IS_TEXT)
 			{
-				_is_text.i = i + delta_i;
-				_is_text.j = j + delta_j;
+				_is_text.i = next_i;
+				_is_text.j = next_j;
+			}
+			else if (obj == GameObject::KEY)
+			{
+				_key.i = next_i;
+				_key.j = next_j;
 			}
 		}
 		if (_rock_is_push_active && CellContainsGameObject(cell, GameObject::ROCK))
 		{
 			RemoveFromCellInPlace(_grid[i][j], GameObject::ROCK);
-			AddToCellInPlace(_grid[i + delta_i][j + delta_j], GameObject::ROCK);
+			AddToCellInPlace(_grid[next_i][next_j], GameObject::ROCK);
 		}
 		return true;
 	}
@@ -306,10 +486,22 @@ namespace BabaSolver
 		_rock_is_push_active = CheckRockIsPushIntact();
 	}
 
-	bool GameState::WillGoOutOfBounds(uint8_t i, uint8_t j, int8_t delta_i, int8_t delta_j) const
+	bool GameState::WillGoOutOfBounds(int8_t i, int8_t j, int8_t delta_i, int8_t delta_j) const
 	{
 		return (i == 0 && delta_i < 0) || (i == GRID_HEIGHT - 1 && delta_i > 0) ||
 			(j == 0 && delta_j < 0) || (j == GRID_WIDTH - 1 && delta_j > 0);
+	}
+
+	bool GameState::AllBabasAlive() const
+	{
+		return _baba1.i != BABA_DEAD && _baba2.i != BABA_DEAD;
+	}
+
+	bool GameState::BabasOnSameSpace() const
+	{
+		if (_baba1.i == BABA_DEAD || _baba2.i == BABA_DEAD)
+			return false;
+		return _baba1.i == _baba2.i && _baba1.j == _baba2.j;
 	}
 
 	bool GameState::CheckRockIsPushIntact() const
@@ -335,6 +527,26 @@ namespace BabaSolver
 		return false;
 	}
 
+	bool GameState::CheckIfTextCanBeAlignedWithRocks(int8_t rock_row) const
+	{
+		if (_is_text.i != rock_row && _is_text.j >= 15)
+			return false;
+		if (_is_text.j >= 15 && _rock_is_push_active)
+			return false;
+
+		for (int8_t i = 3; i <= 7; ++i)
+		{
+			if (i == rock_row)
+				continue;
+			for (int8_t j = 15; j <= 17; ++j)
+			{
+				if (CellContainsGameObject(_grid[i][j], GameObject::ROCK_TEXT) || CellContainsGameObject(_grid[i][j], GameObject::PUSH_TEXT))
+					return false;
+			}
+		}
+		return true;
+	}
+
 	static uint16_t CombineUInt8s(uint8_t n1, uint8_t n2)
 	{
 		return (static_cast<uint16_t>(n1) << 8) | n2;
@@ -352,7 +564,8 @@ namespace BabaSolver
 
 	static std::size_t ApplyHash(uint32_t to_apply, std::size_t current_hash)
 	{
-		// Note: I got this code from Stack Overflow somewhere. I have no idea how good or bad it is.
+		// Note: I forgot where I got this code from, but it was on Stack Overflow somewhere. I have
+		// no idea how good or bad it is.
 		// TODO: Check how effective this hashing code is.
 		to_apply = ((to_apply >> 16) ^ to_apply) * 0x45d9f3b;
 		to_apply = ((to_apply >> 16) ^ to_apply) * 0x45d9f3b;
@@ -367,9 +580,9 @@ namespace BabaSolver
 		uint32_t babas = CombineUInt16s(CombineUInt8s(state->_baba1.i, state->_baba1.j),
 			CombineUInt8s(state->_baba2.i, state->_baba2.j));
 		hash = ApplyHash(babas, hash);
-		for (uint8_t i = 0; i < GRID_HEIGHT; ++i)
+		for (int8_t i = 0; i < GRID_HEIGHT; ++i)
 		{
-			for (uint8_t j = 0; j < GRID_WIDTH; ++j)
+			for (int8_t j = 0; j < GRID_WIDTH; ++j)
 			{
 				hash = ApplyHash(state->_grid[i][j], hash);
 			}
@@ -379,12 +592,14 @@ namespace BabaSolver
 
 	bool GameStateEqual::operator()(const std::shared_ptr<GameState>& lhs, const std::shared_ptr<GameState>& rhs) const
 	{
+		// TODO: Instead of checking _turn for equality here, we should check that a GameState at a
+		// lower _turn number has already been cached.
 		if (lhs->_turn != rhs->_turn) return false;
 		if (lhs->_baba1.i != rhs->_baba1.i || lhs->_baba1.j != rhs->_baba1.j) return false;
 		if (lhs->_baba2.i != rhs->_baba2.i || lhs->_baba2.j != rhs->_baba2.j) return false;
-		for (uint8_t i = 0; i < GRID_HEIGHT; ++i)
+		for (int8_t i = 0; i < GRID_HEIGHT; ++i)
 		{
-			for (uint8_t j = 0; j < GRID_WIDTH; ++j)
+			for (int8_t j = 0; j < GRID_WIDTH; ++j)
 			{
 				if (lhs->_grid[i][j] != rhs->_grid[i][j])
 					return false;
@@ -395,116 +610,116 @@ namespace BabaSolver
 
 	std::shared_ptr<GameState> FloatiestPlatformsLevel()
 	{
-		constexpr uint8_t is_text_start_i = 4;
-		constexpr uint8_t is_text_start_j = 12;
-		std::shared_ptr<GameState> initial_state = std::make_shared<GameState>(
-			Coordinate{ 5, 4 }, Coordinate{ 5, 12 }, Coordinate{ is_text_start_i, is_text_start_j }, true);
+		uint16_t grid[GRID_HEIGHT][GRID_WIDTH]{};
 		// Add tiles to grid.
-		for (uint8_t i = 3; i <= 7; ++i)
+		for (int8_t i = 3; i <= 7; ++i)
 		{
-			for (uint8_t j = 2; j <= 6; ++j)
+			for (int8_t j = 2; j <= 6; ++j)
 			{
-				AddToCellInPlace(initial_state->_grid[i][j], GameObject::TILE);
+				AddToCellInPlace(grid[i][j], GameObject::TILE);
 			}
 		}
-		for (uint8_t i = 3; i <= 7; ++i)
+		for (int8_t i = 3; i <= 7; ++i)
 		{
-			for (uint8_t j = 10; j <= 14; ++j)
+			for (int8_t j = 10; j <= 14; ++j)
 			{
-				AddToCellInPlace(initial_state->_grid[i][j], GameObject::TILE);
+				AddToCellInPlace(grid[i][j], GameObject::TILE);
 			}
 		}
-		for (uint8_t i = 10; i <= 14; ++i)
+		for (int8_t i = 10; i <= 14; ++i)
 		{
-			for (uint8_t j = 2; j <= 6; ++j)
+			for (int8_t j = 2; j <= 6; ++j)
 			{
-				AddToCellInPlace(initial_state->_grid[i][j], GameObject::TILE);
+				AddToCellInPlace(grid[i][j], GameObject::TILE);
 			}
 		}
-		for (uint8_t i = 9; i <= 13; ++i)
+		for (int8_t i = 9; i <= 13; ++i)
 		{
-			for (uint8_t j = 10; j <= 14; ++j)
+			for (int8_t j = 10; j <= 14; ++j)
 			{
-				AddToCellInPlace(initial_state->_grid[i][j], GameObject::TILE);
+				AddToCellInPlace(grid[i][j], GameObject::TILE);
 			}
 		}
 		// Add an immovable for each text block around the corners of the grid.
-		AddToCellInPlace(initial_state->_grid[0][0], GameObject::IMMOVABLE);
-		AddToCellInPlace(initial_state->_grid[0][1], GameObject::IMMOVABLE);
-		AddToCellInPlace(initial_state->_grid[0][2], GameObject::IMMOVABLE);
-		AddToCellInPlace(initial_state->_grid[0][7], GameObject::IMMOVABLE);
-		AddToCellInPlace(initial_state->_grid[0][8], GameObject::IMMOVABLE);
-		AddToCellInPlace(initial_state->_grid[0][9], GameObject::IMMOVABLE);
-		AddToCellInPlace(initial_state->_grid[16][0], GameObject::IMMOVABLE);
-		AddToCellInPlace(initial_state->_grid[16][1], GameObject::IMMOVABLE);
-		AddToCellInPlace(initial_state->_grid[17][0], GameObject::IMMOVABLE);
-		AddToCellInPlace(initial_state->_grid[17][1], GameObject::IMMOVABLE);
-		AddToCellInPlace(initial_state->_grid[17][2], GameObject::IMMOVABLE);
-		AddToCellInPlace(initial_state->_grid[17][3], GameObject::IMMOVABLE);
-		AddToCellInPlace(initial_state->_grid[15][15], GameObject::IMMOVABLE);
-		AddToCellInPlace(initial_state->_grid[15][16], GameObject::IMMOVABLE);
-		AddToCellInPlace(initial_state->_grid[15][17], GameObject::IMMOVABLE);
-		AddToCellInPlace(initial_state->_grid[16][15], GameObject::IMMOVABLE);
-		AddToCellInPlace(initial_state->_grid[16][16], GameObject::IMMOVABLE);
-		AddToCellInPlace(initial_state->_grid[16][17], GameObject::IMMOVABLE);
-		AddToCellInPlace(initial_state->_grid[17][15], GameObject::IMMOVABLE);
-		AddToCellInPlace(initial_state->_grid[17][16], GameObject::IMMOVABLE);
-		AddToCellInPlace(initial_state->_grid[17][17], GameObject::IMMOVABLE);
+		AddToCellInPlace(grid[0][0], GameObject::IMMOVABLE);
+		AddToCellInPlace(grid[0][1], GameObject::IMMOVABLE);
+		AddToCellInPlace(grid[0][2], GameObject::IMMOVABLE);
+		AddToCellInPlace(grid[0][7], GameObject::IMMOVABLE);
+		AddToCellInPlace(grid[0][8], GameObject::IMMOVABLE);
+		AddToCellInPlace(grid[0][9], GameObject::IMMOVABLE);
+		AddToCellInPlace(grid[16][0], GameObject::IMMOVABLE);
+		AddToCellInPlace(grid[16][1], GameObject::IMMOVABLE);
+		AddToCellInPlace(grid[16][2], GameObject::IMMOVABLE);
+		AddToCellInPlace(grid[17][0], GameObject::IMMOVABLE);
+		AddToCellInPlace(grid[17][1], GameObject::IMMOVABLE);
+		AddToCellInPlace(grid[17][2], GameObject::IMMOVABLE);
+		AddToCellInPlace(grid[17][3], GameObject::IMMOVABLE);
+		AddToCellInPlace(grid[15][15], GameObject::IMMOVABLE);
+		AddToCellInPlace(grid[15][16], GameObject::IMMOVABLE);
+		AddToCellInPlace(grid[15][17], GameObject::IMMOVABLE);
+		AddToCellInPlace(grid[16][15], GameObject::IMMOVABLE);
+		AddToCellInPlace(grid[16][16], GameObject::IMMOVABLE);
+		AddToCellInPlace(grid[16][17], GameObject::IMMOVABLE);
+		AddToCellInPlace(grid[17][15], GameObject::IMMOVABLE);
+		AddToCellInPlace(grid[17][16], GameObject::IMMOVABLE);
+		AddToCellInPlace(grid[17][17], GameObject::IMMOVABLE);
 		// Add the other game objects to the grid.
-		AddToCellInPlace(initial_state->_grid[4][3], GameObject::ROCK);
-		AddToCellInPlace(initial_state->_grid[6][5], GameObject::ROCK);
-		AddToCellInPlace(initial_state->_grid[6][11], GameObject::ROCK);
-		AddToCellInPlace(initial_state->_grid[4][11], GameObject::ROCK_TEXT);
-		AddToCellInPlace(initial_state->_grid[is_text_start_i][is_text_start_j], GameObject::IS_TEXT);
-		AddToCellInPlace(initial_state->_grid[4][13], GameObject::PUSH_TEXT);
-		AddToCellInPlace(initial_state->_grid[16][2], GameObject::PUSH_TEXT);
-		AddToCellInPlace(initial_state->_grid[DOOR_START_I][DOOR_START_J], GameObject::DOOR);
-		AddToCellInPlace(initial_state->_grid[11][12], GameObject::KEY);
+		AddToCellInPlace(grid[4][3], GameObject::ROCK);
+		AddToCellInPlace(grid[6][5], GameObject::ROCK);
+		AddToCellInPlace(grid[6][11], GameObject::ROCK);
+		AddToCellInPlace(grid[4][11], GameObject::ROCK_TEXT);
+		AddToCellInPlace(grid[4][12], GameObject::IS_TEXT);
+		AddToCellInPlace(grid[4][13], GameObject::PUSH_TEXT);
+		AddToCellInPlace(grid[DOOR_I][DOOR_J], GameObject::DOOR);
+		AddToCellInPlace(grid[11][12], GameObject::KEY);
 
-		return initial_state;
+		Coordinate baba1{ 5, 4 };
+		Coordinate baba2{ 5, 12 };
+		return std::make_shared<GameState>(grid, baba1, baba2);
 	}
 
 	std::shared_ptr<GameState> TestLevel()
 	{
-		constexpr uint8_t is_text_start_i = 4;
-		constexpr uint8_t is_text_start_j = 12;
-		std::shared_ptr<GameState> initial_state = std::make_shared<GameState>(
-			Coordinate{ 12, 2 }, Coordinate{ 5, 12 }, Coordinate{ is_text_start_i, is_text_start_j }, true);
+		constexpr int8_t is_text_start_i = 4;
+		constexpr int8_t is_text_start_j = 12;
+		uint16_t grid[GRID_HEIGHT][GRID_WIDTH]{};
 		// Add tiles to grid.
-		for (uint8_t i = 3; i <= 7; ++i)
+		for (int8_t i = 3; i <= 7; ++i)
 		{
-			for (uint8_t j = 2; j <= 6; ++j)
+			for (int8_t j = 2; j <= 6; ++j)
 			{
-				AddToCellInPlace(initial_state->_grid[i][j], GameObject::TILE);
+				AddToCellInPlace(grid[i][j], GameObject::TILE);
 			}
 		}
-		for (uint8_t i = 3; i <= 7; ++i)
+		for (int8_t i = 3; i <= 7; ++i)
 		{
-			for (uint8_t j = 10; j <= 14; ++j)
+			for (int8_t j = 10; j <= 14; ++j)
 			{
-				AddToCellInPlace(initial_state->_grid[i][j], GameObject::TILE);
+				AddToCellInPlace(grid[i][j], GameObject::TILE);
 			}
 		}
-		for (uint8_t i = 10; i <= 14; ++i)
+		for (int8_t i = 10; i <= 14; ++i)
 		{
-			for (uint8_t j = 2; j <= 6; ++j)
+			for (int8_t j = 2; j <= 6; ++j)
 			{
-				AddToCellInPlace(initial_state->_grid[i][j], GameObject::TILE);
+				AddToCellInPlace(grid[i][j], GameObject::TILE);
 			}
 		}
-		for (uint8_t i = 9; i <= 13; ++i)
+		for (int8_t i = 9; i <= 13; ++i)
 		{
-			for (uint8_t j = 10; j <= 14; ++j)
+			for (int8_t j = 10; j <= 14; ++j)
 			{
-				AddToCellInPlace(initial_state->_grid[i][j], GameObject::TILE);
+				AddToCellInPlace(grid[i][j], GameObject::TILE);
 			}
 		}
 		// Add the other game objects to the grid.
-		AddToCellInPlace(initial_state->_grid[DOOR_START_I][DOOR_START_J], GameObject::DOOR);
-		AddToCellInPlace(initial_state->_grid[12][3], GameObject::KEY);
-		AddToCellInPlace(initial_state->_grid[is_text_start_i][is_text_start_j], GameObject::IS_TEXT);
+		AddToCellInPlace(grid[DOOR_I][DOOR_J], GameObject::DOOR);
+		AddToCellInPlace(grid[12][3], GameObject::KEY);
+		AddToCellInPlace(grid[4][12], GameObject::IS_TEXT);
 
-		return initial_state;
+		Coordinate baba1{ 12, 2 };
+		Coordinate baba2{ 5, 12 };
+		return std::make_shared<GameState>(grid, baba1, baba2);
 	}
 
 }  // namespace BabaSolver

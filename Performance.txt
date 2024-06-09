@@ -400,6 +400,165 @@ Stats:
 
 --
 
+After adding iterations
+
+======== ITERATION 1 ========
+~~~ RESULTS ~~~
+Did not win...
+Best leaf game state:
+XXXXXXXXXXXXXXXXXXXX
+XXXX    XXX        X
+X                  X
+X                  X
+X  ^^^^^   ^^^^^   X
+X  ^^^^^   ^^123   X
+X  ^^^^^   ^^^^^   X
+X  ^^^^BRRR^^^^B   X
+X  ^^^^^   ^^^^^   X
+X                  X
+X          ^^^^^   X
+X  ^^^^^   ^^^^^   X
+X  ^^^^^   ^^K^^   X
+X  ^^D^^   ^^^^^   X
+X  ^^^^^   ^^^^^   X
+X  ^^^^^           X
+X               XXXX
+XXXX            XXXX
+XXXXX           XXXX
+XXXXXXXXXXXXXXXXXXXX
+25 moves: L L U U R D L D D R U R D L L U U R D L D R R R R
+Config:
+  Max move depth: 25
+  Parallelism depth: 2
+  Max cache depth: 20
+Stats:
+  Total number of moves simulated (including cache hits): 2,531,139,524
+  Cache size: 10,416,416 moves
+  Number of cache hits: 9,670,456
+  Number of unique, non-cached moves: 2,521,469,068
+  Number of parallel tree roots: 13
+  Number of tree leaf game states: 1,490,384,362
+  Total time: 169 seconds
+  Time per move: 67 nanoseconds
+
+======== ITERATION 2 ========
+~~~ RESULTS ~~~
+Did not win...
+Best leaf game state:
+XXXXXXXXXXXXXXXXXXXX
+XXXX    XXX        X
+X                  X
+X                  X
+X  ^^^^^   ^^^^^   X
+X  ^^^^^   ^^^^^   X
+X  ^^B^^   ^^B^^   X
+X  ^^^^^RRR^^213   X
+X  ^^^^^   ^^^^^   X
+X                  X
+X          ^^^^^   X
+X  ^^^^^   ^^^^^   X
+X  ^^^^^   ^^K^^   X
+X  ^^D^^   ^^^^^   X
+X  ^^^^^   ^^^^^   X
+X  ^^^^^           X
+X               XXXX
+XXXX            XXXX
+XXXXX           XXXX
+XXXXXXXXXXXXXXXXXXXX
+25 moves: L L L L R U U U R D L D R U U R D U R D D L U L D
+Config:
+  Max move depth: 25
+  Parallelism depth: 2
+  Max cache depth: 20
+Stats:
+  Total number of moves simulated (including cache hits): 62,435,220
+  Cache size: 386,833 moves
+  Number of cache hits: 522,763
+  Number of unique, non-cached moves: 61,912,457
+  Number of parallel tree roots: 5
+  Number of tree leaf game states: 37,179,073
+  Total time: 5 seconds
+  Time per move: 87 nanoseconds
+
+======== ITERATION 3 ========
+~~~ RESULTS ~~~
+Did not win...
+Best leaf game state:
+XXXXXXXXXXXXXXXXXXXX
+XXXX    XXX        X
+X                  X
+X                  X
+X  ^^^^^   ^^^^^   X
+X  ^^^^^   ^^^^^   X
+X  ^^^^^   ^^^^^   X
+X  ^^^^^RRR^^^^^213X
+X  ^^^^^   ^^^^^   X
+X                  X
+X          ^^^^^   X
+X  ^^^^^   ^^^^^   X
+X  ^^^^KB  ^^^^^   X
+X  ^^D^^   ^^^^^   X
+X  ^^^^^   ^^^^^   X
+X  ^^^^^           X
+X               XXXX
+XXXX            XXXX
+XXXXX           XXXX
+XXXXXXXXXXXXXXXXXXXX
+25 moves: L D R R R R R R R R R R R L D D D D D L L L L L L
+Config:
+  Max move depth: 25
+  Parallelism depth: 2
+  Max cache depth: 20
+Stats:
+  Total number of moves simulated (including cache hits): 129,602,656
+  Cache size: 802,817 moves
+  Number of cache hits: 1,048,927
+  Number of unique, non-cached moves: 128,553,729
+  Number of parallel tree roots: 11
+  Number of tree leaf game states: 76,591,726
+  Total time: 10 seconds
+  Time per move: 77 nanoseconds
+
+======== ITERATION 4 ========
+~~~ RESULTS ~~~
+WIN!!! Winning state:
+XXXXXXXXXXXXXXXXXXXX
+XXXX    XXX        X
+X                  X
+X                  X
+X  ^^^^^   ^^^^^   X
+X  ^^^^^   ^^^^^   X
+X  ^^^^^   ^^^^^   X
+X  ^^^^^RRR^^^^^213X
+X  ^^^^^   ^^^^^   X
+X                  X
+X          ^^^^^   X
+X  ^^^^^   ^^^^^   X
+X  ^^B^^   ^^^^^   X
+X  ^^K^^   ^^^^^   X
+X  ^^^^^   ^^^^^   X
+X  ^^^^^           X
+X               XXXX
+XXXX            XXXX
+XXXXX           XXXX
+XXXXXXXXXXXXXXXXXXXX
+25 moves: L L L L L D L L L L L L L L L L L L U R R R U R D
+Config:
+  Max move depth: 25
+  Parallelism depth: 2
+  Max cache depth: 20
+Stats:
+  Total number of moves simulated (including cache hits): 4,519,006
+  Cache size: 12,700 moves
+  Number of cache hits: 23,774
+  Number of unique, non-cached moves: 4,495,232
+  Number of parallel tree roots: 12
+  Number of tree leaf game states: 3,365,308
+  Total time: 0 seconds
+  Time per move: 123 nanoseconds
+
+--
+
 TotalMoves(n) = 4^1 + 4^2 + ... + 4^n, where n is the max move depth
 (Note: This formula ignores cached moves and other tree-pruning techniques.)
 
