@@ -576,10 +576,8 @@ namespace BabaSolver
 
 	std::size_t GameStateHash::operator()(const std::shared_ptr<GameState>& state) const
 	{
-		std::size_t hash = static_cast<std::size_t>(state->_turn) * 37;
-		uint32_t babas = CombineUInt16s(CombineUInt8s(state->_baba1.i, state->_baba1.j),
-			CombineUInt8s(state->_baba2.i, state->_baba2.j));
-		hash = ApplyHash(babas, hash);
+		std::size_t hash = static_cast<std::size_t>(CombineUInt16s(
+			CombineUInt8s(state->_baba1.i, state->_baba1.j), CombineUInt8s(state->_baba2.i, state->_baba2.j))) * 37;
 		for (int8_t i = 0; i < GRID_HEIGHT; ++i)
 		{
 			for (int8_t j = 0; j < GRID_WIDTH; ++j)
@@ -592,9 +590,6 @@ namespace BabaSolver
 
 	bool GameStateEqual::operator()(const std::shared_ptr<GameState>& lhs, const std::shared_ptr<GameState>& rhs) const
 	{
-		// TODO: Instead of checking _turn for equality here, we should check that a GameState at a
-		// lower _turn number has already been cached.
-		if (lhs->_turn != rhs->_turn) return false;
 		if (lhs->_baba1.i != rhs->_baba1.i || lhs->_baba1.j != rhs->_baba1.j) return false;
 		if (lhs->_baba2.i != rhs->_baba2.i || lhs->_baba2.j != rhs->_baba2.j) return false;
 		for (int8_t i = 0; i < GRID_HEIGHT; ++i)

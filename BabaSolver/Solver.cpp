@@ -10,7 +10,8 @@
 #include <mutex>
 #include <stack>
 #include <string>
-#include <unordered_set>
+#include <string_view>
+#include <unordered_map>
 #include <vector>
 
 #include "GameState.h"
@@ -55,6 +56,18 @@ namespace BabaSolver
 		return s;
 	}
 
+	// Prints the given SolverOptions to stdout.
+	static void PrintSolverOptions(const SolverOptions& options, bool print_iterations)
+	{
+		if (print_iterations)
+		{
+			std::cout << "  Iteration count: " << options.iteration_count << "\n";
+		}
+		std::cout << "  Max move depth: " << options.max_turn_depth << "\n";
+		std::cout << "  Parallelism depth: " << options.parallelism_depth << "\n";
+		std::cout << "  Max cache depth: " << options.max_cache_depth << "\n";
+	}
+
 	// Tries to solve the level in one iteration given the initial state and options. Returns
 	// the winning state if it's possible to win in one iteration. Otherwise, returns the state
 	// with the highest score at the end of the iteration.
@@ -70,11 +83,11 @@ namespace BabaSolver
 		stack.push(NextMove{ initial_state, Direction::RIGHT });
 		stack.push(NextMove{ initial_state, Direction::DOWN });
 		stack.push(NextMove{ initial_state, Direction::LEFT });
-		// This unordered_set acts a cache of previously computed game states. If we see a game
+		// This unordered_map acts a cache of previously computed game states. If we see a game
 		// state that we've already computed before, we don't compute that game state again,
 		// potentially pruning a large chunk of the move tree.
-		std::unordered_set<std::shared_ptr<GameState>, GameStateHash, GameStateEqual> seen_states;
-		seen_states.insert(initial_state);
+		std::unordered_map<std::shared_ptr<GameState>, uint8_t, GameStateHash, GameStateEqual> seen_states;
+		seen_states[initial_state] = 0;
 
 		// TODO: Put all these stats variables in a struct.
 		uint64_t total_num_moves = 0;
@@ -112,11 +125,15 @@ namespace BabaSolver
 			{
 				// Check the cache and don't proceed if the new game state has already been
 				// computed before.
-				const auto inserted = seen_states.insert(new_state);
-				if (!inserted.second)
+				auto [iter, inserted] = seen_states.insert({new_state, new_state->_turn});
+				if (!inserted)
 				{
-					++total_cache_hits;
-					continue;
+					if (new_state->_turn >= iter->second)
+					{
+						++total_cache_hits;
+						continue;
+					}
+					iter->second = new_state->_turn;
 				}
 			}
 
@@ -172,7 +189,7 @@ namespace BabaSolver
 					stack.push(NextMove{ state, Direction::LEFT });
 
 					// Copy seen_states to make a thread-local cache.
-					std::unordered_set<std::shared_ptr<GameState>, GameStateHash, GameStateEqual> local_seen_states = seen_states;
+					std::unordered_map<std::shared_ptr<GameState>, uint8_t, GameStateHash, GameStateEqual> local_seen_states = seen_states;
 					uint64_t num_moves = 0;
 					uint64_t num_cache_hits = 0;
 					uint64_t leaf_count = 0;
@@ -210,11 +227,15 @@ namespace BabaSolver
 						{
 							// Check the cache and don't proceed if the new game state has already
 							// been computed before.
-							const auto inserted = local_seen_states.insert(new_state);
-							if (!inserted.second)
+							auto [iter, inserted] = local_seen_states.insert({ new_state, new_state->_turn });
+							if (!inserted)
 							{
-								++num_cache_hits;
-								continue;
+								if (new_state->_turn >= iter->second)
+								{
+									++num_cache_hits;
+									continue;
+								}
+								iter->second = new_state->_turn;
 							}
 						}
 
@@ -282,6 +303,8 @@ namespace BabaSolver
 			std::shared_ptr<GameState> best_leaf_state;
 			for (const std::shared_ptr<GameState>& leaf_state : best_leaf_states)
 			{
+				if (!leaf_state)
+					continue;
 				int score = leaf_state->CalculateScore();
 				if (score > best_score)
 				{
@@ -295,9 +318,7 @@ namespace BabaSolver
 			winning_state = best_leaf_state;
 		}
 		std::cout << "Config:\n";
-		std::cout << "  Max move depth: " << options.max_turn_depth << "\n";
-		std::cout << "  Parallelism depth: " << options.parallelism_depth << "\n";
-		std::cout << "  Max cache depth: " << options.max_cache_depth << "\n";
+		PrintSolverOptions(options, false);
 		std::cout << "Stats:\n";
 		std::cout << "  Total number of moves simulated (including cache hits): " << FormatNumberWithCommas(total_num_moves) << "\n";
 		std::cout << "  Cache size: " << FormatNumberWithCommas(total_cache_size) << " moves\n";
@@ -312,7 +333,8 @@ namespace BabaSolver
 		return winning_state;
 	}
 
-	std::shared_ptr<GameState> Solve(const std::shared_ptr<GameState>& initial_state, const SolverOptions& options)
+	std::shared_ptr<GameState> Solve(std::string_view level_name,
+		const std::shared_ptr<GameState>& initial_state, const SolverOptions& options)
 	{
 		if (options.max_turn_depth > MAX_TURN_COUNT)
 		{
@@ -320,10 +342,13 @@ namespace BabaSolver
 			return nullptr;
 		}
 
+		std::cout << "Solving level \"" << level_name << "\" with the following config options:\n";
+		PrintSolverOptions(options, true);
+
 		std::shared_ptr<GameState> current_state = initial_state;
 		for (int i = 0; i < options.iteration_count; ++i)
 		{
-			std::cout << "======== ITERATION " << (i + 1) << " ========" << std::endl;
+			std::cout << "\n======== ITERATION " << (i + 1) << " ========\n" << std::endl;
 			current_state->ResetContext();
 			current_state = SolveOneIteration(current_state, options);
 			if (current_state->HaveWon())
@@ -334,7 +359,7 @@ namespace BabaSolver
 
 	std::shared_ptr<GameState> SolveFloatiestPlatforms(const SolverOptions& options)
 	{
-		return Solve(FloatiestPlatformsLevel(), options);
+		return Solve("Floatiest Platforms", FloatiestPlatformsLevel(), options);
 	}
 
 }  // namespace BabaSolver

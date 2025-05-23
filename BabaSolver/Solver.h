@@ -22,6 +22,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <string_view>
 
 #include "GameState.h"
 
@@ -48,14 +49,16 @@ namespace BabaSolver
 		uint64_t print_every_n_moves;
 
 		// Initializes this object with reasonable defaults.
-		SolverOptions() : iteration_count(4), max_turn_depth(25), parallelism_depth(2), max_cache_depth(20), print_every_n_moves(10'000'000) {}
+		SolverOptions() : iteration_count(4), max_turn_depth(25), parallelism_depth(2),
+			max_cache_depth(20), print_every_n_moves(10'000'000) {}
 	};
 
 	// Tries to solve the level given the initial state and options. Returns the winning game state
 	// if achieveable with the given options, otherwise returns the game state with the best score
 	// at the end of the last iteration. The score is determined by GameState::CalculateScore().
 	// See SolverOptions for options that can be tuned for better performance.
-	std::shared_ptr<GameState> Solve(const std::shared_ptr<GameState>& initial_state, const SolverOptions& options);
+	std::shared_ptr<GameState> Solve(std::string_view level_name,
+		const std::shared_ptr<GameState>& initial_state, const SolverOptions& options);
 
 	// Calls Solve() with the Floatiest Platforms level.
 	std::shared_ptr<GameState> SolveFloatiestPlatforms(const SolverOptions& options);
