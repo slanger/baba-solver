@@ -9,3 +9,15 @@ longer has these limitations.
 
 1. Currently, the program can only solve one level, The Floatiest Platforms (Mountain-Extra 1).
 2. Currently, the program can only run on Windows.
+
+## How to run
+
+TODO
+
+## How the algorithm works
+
+TODO
+
+## FAQ
+
+TODO
