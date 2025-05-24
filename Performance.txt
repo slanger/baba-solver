@@ -719,7 +719,486 @@ Stats:
   Total time: 0 seconds
   Time per move: 191 nanoseconds
 
---
+
+-------------------------------------------------------------------------------
+CMake build:
+
+Baba Is You solver
+Solving level "Floatiest Platforms" with the following config options:
+  Iteration count: 4
+  Max move depth: 25
+  Parallelism depth: 2
+  Max cache depth: 20
+
+======== ITERATION 1 ========
+
+Solving with initial state:
+XXXXXXXXXXXXXXXXXXXX
+XXXX    XXX        X
+X                  X
+X                  X
+X  ^^^^^   ^^^^^   X
+X  ^R^^^   ^123^   X
+X  ^^B^^   ^^B^^   X
+X  ^^^R^   ^R^^^   X
+X  ^^^^^   ^^^^^   X
+X                  X
+X          ^^^^^   X
+X  ^^^^^   ^^^^^   X
+X  ^^^^^   ^^K^^   X
+X  ^^D^^   ^^^^^   X
+X  ^^^^^   ^^^^^   X
+X  ^^^^^           X
+X               XXXX
+XXXX            XXXX
+XXXXX           XXXX
+XXXXXXXXXXXXXXXXXXXX
+Finished the sequential portion. Now parallelizing into 12 threads.
+Thread 9 finished (1/12): Moves=4M, Cache=14K, Leaves=2M
+Thread 11 finished (2/12): Moves=6M, Cache=19K, Leaves=3M
+Thread 7: Calculating move #10000000 (10M), cache size = 25437 (25K), stack size = 37
+Thread 5: Calculating move #10000000 (10M), cache size = 26513 (26K), stack size = 37
+Thread 4: Calculating move #10000000 (10M), cache size = 26360 (26K), stack size = 29
+Thread 10: Calculating move #10000000 (10M), cache size = 28828 (28K), stack size = 41
+Thread 1: Calculating move #10000000 (10M), cache size = 26310 (26K), stack size = 33
+Thread 2: Calculating move #10000000 (10M), cache size = 28390 (28K), stack size = 33
+Thread 6: Calculating move #10000000 (10M), cache size = 26598 (26K), stack size = 33
+Thread 3: Calculating move #10000000 (10M), cache size = 27276 (27K), stack size = 37
+Thread 0: Calculating move #10000000 (10M), cache size = 26914 (26K), stack size = 29
+Thread 8: Calculating move #10000000 (10M), cache size = 29882 (29K), stack size = 33
+Thread 2 finished (3/12): Moves=17M, Cache=51K, Leaves=10M
+Thread 10 finished (4/12): Moves=19M, Cache=54K, Leaves=11M
+Thread 8 finished (5/12): Moves=18M, Cache=54K, Leaves=10M
+Thread 7: Calculating move #20000000 (20M), cache size = 51707 (51K), stack size = 41
+Thread 4: Calculating move #20000000 (20M), cache size = 52527 (52K), stack size = 33
+Thread 1: Calculating move #20000000 (20M), cache size = 52572 (52K), stack size = 37
+Thread 5: Calculating move #20000000 (20M), cache size = 52546 (52K), stack size = 33
+Thread 6: Calculating move #20000000 (20M), cache size = 52639 (52K), stack size = 33
+Thread 3: Calculating move #20000000 (20M), cache size = 53651 (53K), stack size = 33
+Thread 0: Calculating move #20000000 (20M), cache size = 52709 (52K), stack size = 33
+Thread 7: Calculating move #30000000 (30M), cache size = 78040 (78K), stack size = 37
+Thread 4: Calculating move #30000000 (30M), cache size = 78810 (78K), stack size = 33
+Thread 1: Calculating move #30000000 (30M), cache size = 79564 (79K), stack size = 29
+Thread 5: Calculating move #30000000 (30M), cache size = 79411 (79K), stack size = 37
+Thread 6: Calculating move #30000000 (30M), cache size = 78530 (78K), stack size = 37
+Thread 3: Calculating move #30000000 (30M), cache size = 80344 (80K), stack size = 33
+Thread 0: Calculating move #30000000 (30M), cache size = 79244 (79K), stack size = 33
+Thread 7: Calculating move #40000000 (40M), cache size = 104792 (104K), stack size = 41
+Thread 4: Calculating move #40000000 (40M), cache size = 105429 (105K), stack size = 33
+Thread 1: Calculating move #40000000 (40M), cache size = 105726 (105K), stack size = 33
+Thread 5: Calculating move #40000000 (40M), cache size = 105381 (105K), stack size = 41
+Thread 3: Calculating move #40000000 (40M), cache size = 107407 (107K), stack size = 33
+Thread 6: Calculating move #40000000 (40M), cache size = 104764 (104K), stack size = 37
+Thread 0: Calculating move #40000000 (40M), cache size = 106108 (106K), stack size = 33
+Thread 4: Calculating move #50000000 (50M), cache size = 131830 (131K), stack size = 29
+Thread 7: Calculating move #50000000 (50M), cache size = 131474 (131K), stack size = 33
+Thread 5: Calculating move #50000000 (50M), cache size = 131266 (131K), stack size = 37
+Thread 1: Calculating move #50000000 (50M), cache size = 132309 (132K), stack size = 37
+Thread 6: Calculating move #50000000 (50M), cache size = 130701 (130K), stack size = 25
+Thread 3: Calculating move #50000000 (50M), cache size = 134632 (134K), stack size = 37
+Thread 0: Calculating move #50000000 (50M), cache size = 133126 (133K), stack size = 29
+Thread 4: Calculating move #60000000 (60M), cache size = 158309 (158K), stack size = 29
+Thread 7: Calculating move #60000000 (60M), cache size = 158029 (158K), stack size = 37
+Thread 5: Calculating move #60000000 (60M), cache size = 157609 (157K), stack size = 37
+Thread 6: Calculating move #60000000 (60M), cache size = 157180 (157K), stack size = 37
+Thread 1: Calculating move #60000000 (60M), cache size = 158791 (158K), stack size = 29
+Thread 3: Calculating move #60000000 (60M), cache size = 162024 (162K), stack size = 37
+Thread 0: Calculating move #60000000 (60M), cache size = 158735 (158K), stack size = 33
+Thread 4: Calculating move #70000000 (70M), cache size = 184117 (184K), stack size = 33
+Thread 7: Calculating move #70000000 (70M), cache size = 184707 (184K), stack size = 33
+Thread 5: Calculating move #70000000 (70M), cache size = 184478 (184K), stack size = 29
+Thread 6: Calculating move #70000000 (70M), cache size = 184091 (184K), stack size = 25
+Thread 3: Calculating move #70000000 (70M), cache size = 187952 (187K), stack size = 33
+Thread 1: Calculating move #70000000 (70M), cache size = 186981 (186K), stack size = 29
+Thread 0: Calculating move #70000000 (70M), cache size = 184712 (184K), stack size = 29
+Thread 4: Calculating move #80000000 (80M), cache size = 210069 (210K), stack size = 33
+Thread 7: Calculating move #80000000 (80M), cache size = 210945 (210K), stack size = 37
+Thread 5: Calculating move #80000000 (80M), cache size = 210858 (210K), stack size = 41
+Thread 6: Calculating move #80000000 (80M), cache size = 210415 (210K), stack size = 33
+Thread 3: Calculating move #80000000 (80M), cache size = 214241 (214K), stack size = 37
+Thread 1: Calculating move #80000000 (80M), cache size = 213440 (213K), stack size = 37
+Thread 0: Calculating move #80000000 (80M), cache size = 211216 (211K), stack size = 33
+Thread 4: Calculating move #90000000 (90M), cache size = 236185 (236K), stack size = 33
+Thread 7: Calculating move #90000000 (90M), cache size = 236857 (236K), stack size = 37
+Thread 5: Calculating move #90000000 (90M), cache size = 238321 (238K), stack size = 37
+Thread 6: Calculating move #90000000 (90M), cache size = 237149 (237K), stack size = 33
+Thread 3: Calculating move #90000000 (90M), cache size = 240395 (240K), stack size = 33
+Thread 1: Calculating move #90000000 (90M), cache size = 239960 (239K), stack size = 33
+Thread 0: Calculating move #90000000 (90M), cache size = 237755 (237K), stack size = 33
+Thread 7: Calculating move #100000000 (100M), cache size = 263222 (263K), stack size = 37
+Thread 4: Calculating move #100000000 (100M), cache size = 262317 (262K), stack size = 37
+Thread 5: Calculating move #100000000 (100M), cache size = 264232 (264K), stack size = 37
+Thread 3: Calculating move #100000000 (100M), cache size = 266683 (266K), stack size = 37
+Thread 6: Calculating move #100000000 (100M), cache size = 263358 (263K), stack size = 41
+Thread 1: Calculating move #100000000 (100M), cache size = 267104 (267K), stack size = 33
+Thread 0: Calculating move #100000000 (100M), cache size = 263727 (263K), stack size = 33
+Thread 7: Calculating move #110000000 (110M), cache size = 289157 (289K), stack size = 41
+Thread 4: Calculating move #110000000 (110M), cache size = 288217 (288K), stack size = 33
+Thread 5: Calculating move #110000000 (110M), cache size = 290428 (290K), stack size = 37
+Thread 3: Calculating move #110000000 (110M), cache size = 293357 (293K), stack size = 33
+Thread 6: Calculating move #110000000 (110M), cache size = 289035 (289K), stack size = 29
+Thread 1: Calculating move #110000000 (110M), cache size = 293881 (293K), stack size = 33
+Thread 0: Calculating move #110000000 (110M), cache size = 290379 (290K), stack size = 29
+Thread 7: Calculating move #120000000 (120M), cache size = 315493 (315K), stack size = 33
+Thread 4: Calculating move #120000000 (120M), cache size = 316211 (316K), stack size = 33
+Thread 5: Calculating move #120000000 (120M), cache size = 317321 (317K), stack size = 33
+Thread 6: Calculating move #120000000 (120M), cache size = 314694 (314K), stack size = 33
+Thread 3: Calculating move #120000000 (120M), cache size = 319684 (319K), stack size = 33
+Thread 1: Calculating move #120000000 (120M), cache size = 320073 (320K), stack size = 33
+Thread 0: Calculating move #120000000 (120M), cache size = 316566 (316K), stack size = 37
+Thread 7: Calculating move #130000000 (130M), cache size = 343131 (343K), stack size = 33
+Thread 4: Calculating move #130000000 (130M), cache size = 342164 (342K), stack size = 33
+Thread 5: Calculating move #130000000 (130M), cache size = 346408 (346K), stack size = 37
+Thread 6: Calculating move #130000000 (130M), cache size = 342075 (342K), stack size = 33
+Thread 3: Calculating move #130000000 (130M), cache size = 346888 (346K), stack size = 37
+Thread 1: Calculating move #130000000 (130M), cache size = 346737 (346K), stack size = 33
+Thread 0: Calculating move #130000000 (130M), cache size = 343658 (343K), stack size = 33
+Thread 7: Calculating move #140000000 (140M), cache size = 371728 (371K), stack size = 41
+Thread 4: Calculating move #140000000 (140M), cache size = 368588 (368K), stack size = 33
+Thread 3: Calculating move #140000000 (140M), cache size = 373072 (373K), stack size = 25
+Thread 6: Calculating move #140000000 (140M), cache size = 371178 (371K), stack size = 37
+Thread 5: Calculating move #140000000 (140M), cache size = 372265 (372K), stack size = 33
+Thread 0: Calculating move #140000000 (140M), cache size = 369223 (369K), stack size = 37
+Thread 1: Calculating move #140000000 (140M), cache size = 373760 (373K), stack size = 33
+Thread 7: Calculating move #150000000 (150M), cache size = 399384 (399K), stack size = 37
+Thread 4: Calculating move #150000000 (150M), cache size = 395150 (395K), stack size = 33
+Thread 6: Calculating move #150000000 (150M), cache size = 397795 (397K), stack size = 37
+Thread 3: Calculating move #150000000 (150M), cache size = 399667 (399K), stack size = 33
+Thread 5: Calculating move #150000000 (150M), cache size = 398319 (398K), stack size = 33
+Thread 1: Calculating move #150000000 (150M), cache size = 401584 (401K), stack size = 37
+Thread 0: Calculating move #150000000 (150M), cache size = 395432 (395K), stack size = 33
+Thread 7: Calculating move #160000000 (160M), cache size = 426911 (426K), stack size = 37
+Thread 4: Calculating move #160000000 (160M), cache size = 420810 (420K), stack size = 37
+Thread 6: Calculating move #160000000 (160M), cache size = 424866 (424K), stack size = 33
+Thread 5: Calculating move #160000000 (160M), cache size = 424582 (424K), stack size = 33
+Thread 3: Calculating move #160000000 (160M), cache size = 425320 (425K), stack size = 33
+Thread 1: Calculating move #160000000 (160M), cache size = 427319 (427K), stack size = 33
+Thread 0: Calculating move #160000000 (160M), cache size = 421227 (421K), stack size = 33
+Thread 7: Calculating move #170000000 (170M), cache size = 454172 (454K), stack size = 37
+Thread 4: Calculating move #170000000 (170M), cache size = 446457 (446K), stack size = 41
+Thread 6: Calculating move #170000000 (170M), cache size = 450653 (450K), stack size = 37
+Thread 5: Calculating move #170000000 (170M), cache size = 450987 (450K), stack size = 33
+Thread 3: Calculating move #170000000 (170M), cache size = 451661 (451K), stack size = 29
+Thread 1: Calculating move #170000000 (170M), cache size = 453552 (453K), stack size = 33
+Thread 0: Calculating move #170000000 (170M), cache size = 446830 (446K), stack size = 37
+Thread 7: Calculating move #180000000 (180M), cache size = 482443 (482K), stack size = 33
+Thread 6: Calculating move #180000000 (180M), cache size = 477963 (477K), stack size = 33
+Thread 4: Calculating move #180000000 (180M), cache size = 472390 (472K), stack size = 33
+Thread 3: Calculating move #180000000 (180M), cache size = 478289 (478K), stack size = 33
+Thread 5: Calculating move #180000000 (180M), cache size = 479148 (479K), stack size = 33
+Thread 1: Calculating move #180000000 (180M), cache size = 479292 (479K), stack size = 37
+Thread 0: Calculating move #180000000 (180M), cache size = 473089 (473K), stack size = 29
+Thread 7: Calculating move #190000000 (190M), cache size = 510680 (510K), stack size = 33
+Thread 4: Calculating move #190000000 (190M), cache size = 499585 (499K), stack size = 37
+Thread 6: Calculating move #190000000 (190M), cache size = 505010 (505K), stack size = 33
+Thread 3: Calculating move #190000000 (190M), cache size = 504258 (504K), stack size = 29
+Thread 7 finished (6/12): Moves=191M, Cache=514K, Leaves=112M
+Thread 5: Calculating move #190000000 (190M), cache size = 507171 (507K), stack size = 29
+Thread 1: Calculating move #190000000 (190M), cache size = 505969 (505K), stack size = 33
+Thread 0: Calculating move #190000000 (190M), cache size = 500174 (500K), stack size = 33
+Thread 4: Calculating move #200000000 (200M), cache size = 527082 (527K), stack size = 37
+Thread 6: Calculating move #200000000 (200M), cache size = 530836 (530K), stack size = 37
+Thread 3: Calculating move #200000000 (200M), cache size = 530552 (530K), stack size = 33
+Thread 5: Calculating move #200000000 (200M), cache size = 533524 (533K), stack size = 33
+Thread 1: Calculating move #200000000 (200M), cache size = 531744 (531K), stack size = 37
+Thread 0: Calculating move #200000000 (200M), cache size = 527099 (527K), stack size = 33
+Thread 4: Calculating move #210000000 (210M), cache size = 553092 (553K), stack size = 33
+Thread 6: Calculating move #210000000 (210M), cache size = 556461 (556K), stack size = 37
+Thread 3: Calculating move #210000000 (210M), cache size = 557615 (557K), stack size = 29
+Thread 5: Calculating move #210000000 (210M), cache size = 559754 (559K), stack size = 29
+Thread 1: Calculating move #210000000 (210M), cache size = 558452 (558K), stack size = 33
+Thread 0: Calculating move #210000000 (210M), cache size = 553231 (553K), stack size = 37
+Thread 4: Calculating move #220000000 (220M), cache size = 579110 (579K), stack size = 37
+Thread 6: Calculating move #220000000 (220M), cache size = 582008 (582K), stack size = 37
+Thread 3: Calculating move #220000000 (220M), cache size = 584018 (584K), stack size = 33
+Thread 5: Calculating move #220000000 (220M), cache size = 587380 (587K), stack size = 33
+Thread 5 finished (7/12): Moves=222M, Cache=594K, Leaves=130M
+Thread 1: Calculating move #220000000 (220M), cache size = 584769 (584K), stack size = 33
+Thread 0: Calculating move #220000000 (220M), cache size = 581227 (581K), stack size = 29
+Thread 4: Calculating move #230000000 (230M), cache size = 606591 (606K), stack size = 29
+Thread 6: Calculating move #230000000 (230M), cache size = 609581 (609K), stack size = 33
+Thread 3: Calculating move #230000000 (230M), cache size = 610309 (610K), stack size = 33
+Thread 4 finished (8/12): Moves=232M, Cache=614K, Leaves=137M
+Thread 6 finished (9/12): Moves=233M, Cache=621K, Leaves=137M
+Thread 1: Calculating move #230000000 (230M), cache size = 611383 (611K), stack size = 29
+Thread 0: Calculating move #230000000 (230M), cache size = 609261 (609K), stack size = 33
+Thread 0 finished (10/12): Moves=233M, Cache=620K, Leaves=138M
+Thread 3: Calculating move #240000000 (240M), cache size = 637001 (637K), stack size = 37
+Thread 1 finished (11/12): Moves=239M, Cache=639K, Leaves=140M
+Thread 3 finished (12/12): Moves=243M, Cache=648K, Leaves=143M
+
+~~~ RESULTS ~~~
+Did not win...
+Best leaf game state:
+XXXXXXXXXXXXXXXXXXXX
+XXXX    XXX        X
+X                  X
+X                  X
+X  ^^^^^   ^^^^^   X
+X  ^^^^^   ^^123   X
+X  ^^^^^   ^^^^^   X
+X  ^^^^BRRR^^^^B   X
+X  ^^^^^   ^^^^^   X
+X                  X
+X          ^^^^^   X
+X  ^^^^^   ^^^^^   X
+X  ^^^^^   ^^K^^   X
+X  ^^D^^   ^^^^^   X
+X  ^^^^^   ^^^^^   X
+X  ^^^^^           X
+X               XXXX
+XXXX            XXXX
+XXXXX           XXXX
+XXXXXXXXXXXXXXXXXXXX
+25 moves: L L U U R D L D D R U R D L L U U R D L D R R R R
+Config:
+  Max move depth: 25
+  Parallelism depth: 2
+  Max cache depth: 20
+Stats:
+  Total number of moves simulated (including cache hits): 1,663,575,480
+  Cache size: 4,448,996 moves
+  Number of cache hits: 6,377,297
+  Number of unique, non-cached moves: 1,657,198,183
+  Number of parallel tree roots: 12
+  Number of tree leaf game states: 979,693,683
+  Total time: 77 seconds
+  Time per move: 46 nanoseconds
+
+
+======== ITERATION 2 ========
+
+Solving with initial state:
+XXXXXXXXXXXXXXXXXXXX
+XXXX    XXX        X
+X                  X
+X                  X
+X  ^^^^^   ^^^^^   X
+X  ^^^^^   ^^123   X
+X  ^^^^^   ^^^^^   X
+X  ^^^^BRRR^^^^B   X
+X  ^^^^^   ^^^^^   X
+X                  X
+X          ^^^^^   X
+X  ^^^^^   ^^^^^   X
+X  ^^^^^   ^^K^^   X
+X  ^^D^^   ^^^^^   X
+X  ^^^^^   ^^^^^   X
+X  ^^^^^           X
+X               XXXX
+XXXX            XXXX
+XXXXX           XXXX
+XXXXXXXXXXXXXXXXXXXX
+Finished the sequential portion. Now parallelizing into 4 threads.
+Thread 1 finished (1/4): Moves=4M, Cache=12K, Leaves=2M
+Thread 3 finished (2/4): Moves=8M, Cache=27K, Leaves=4M
+Thread 2: Calculating move #10000000 (10M), cache size = 28586 (28K), stack size = 41
+Thread 0: Calculating move #10000000 (10M), cache size = 28409 (28K), stack size = 37
+Thread 0 finished (3/4): Moves=10M, Cache=30K, Leaves=6M
+Thread 2 finished (4/4): Moves=12M, Cache=38K, Leaves=7M
+
+~~~ RESULTS ~~~
+Did not win...
+Best leaf game state:
+XXXXXXXXXXXXXXXXXXXX
+XXXX    XXX        X
+X                  X
+X                  X
+X  ^^^^^   ^^^^^   X
+X  ^^^^^   ^^^^^   X
+X  ^^B^^   ^^B^^   X
+X  ^^^^^RRR^^213   X
+X  ^^^^^   ^^^^^   X
+X                  X
+X          ^^^^^   X
+X  ^^^^^   ^^^^^   X
+X  ^^^^^   ^^K^^   X
+X  ^^D^^   ^^^^^   X
+X  ^^^^^   ^^^^^   X
+X  ^^^^^           X
+X               XXXX
+XXXX            XXXX
+XXXXX           XXXX
+XXXXXXXXXXXXXXXXXXXX
+25 moves: L L L L U R U U R D L D R U U R D U R D D L U L D
+Config:
+  Max move depth: 25
+  Parallelism depth: 2
+  Max cache depth: 20
+Stats:
+  Total number of moves simulated (including cache hits): 36,454,064
+  Cache size: 109,010 moves
+  Number of cache hits: 289,772
+  Number of unique, non-cached moves: 36,164,292
+  Number of parallel tree roots: 4
+  Number of tree leaf game states: 21,737,208
+  Total time: 3 seconds
+  Time per move: 87 nanoseconds
+
+
+======== ITERATION 3 ========
+
+Solving with initial state:
+XXXXXXXXXXXXXXXXXXXX
+XXXX    XXX        X
+X                  X
+X                  X
+X  ^^^^^   ^^^^^   X
+X  ^^^^^   ^^^^^   X
+X  ^^B^^   ^^B^^   X
+X  ^^^^^RRR^^213   X
+X  ^^^^^   ^^^^^   X
+X                  X
+X          ^^^^^   X
+X  ^^^^^   ^^^^^   X
+X  ^^^^^   ^^K^^   X
+X  ^^D^^   ^^^^^   X
+X  ^^^^^   ^^^^^   X
+X  ^^^^^           X
+X               XXXX
+XXXX            XXXX
+XXXXX           XXXX
+XXXXXXXXXXXXXXXXXXXX
+Finished the sequential portion. Now parallelizing into 10 threads.
+Thread 2 finished (1/10): Moves=20, Cache=20, Leaves=0
+Thread 8 finished (2/10): Moves=20, Cache=20, Leaves=0
+Thread 9 finished (3/10): Moves=28, Cache=23, Leaves=0
+Thread 4 finished (4/10): Moves=405K, Cache=1K, Leaves=234K
+Thread 5 finished (5/10): Moves=2M, Cache=9K, Leaves=1M
+Thread 3 finished (6/10): Moves=3M, Cache=10K, Leaves=1M
+Thread 6 finished (7/10): Moves=3M, Cache=11K, Leaves=2M
+Thread 7 finished (8/10): Moves=7M, Cache=23K, Leaves=4M
+Thread 0: Calculating move #10000000 (10M), cache size = 29088 (29K), stack size = 33
+Thread 1: Calculating move #10000000 (10M), cache size = 29088 (29K), stack size = 33
+Thread 0 finished (9/10): Moves=11M, Cache=32K, Leaves=6M
+Thread 1: Calculating move #20000000 (20M), cache size = 59774 (59K), stack size = 33
+Thread 1 finished (10/10): Moves=22M, Cache=66K, Leaves=13M
+
+~~~ RESULTS ~~~
+Did not win...
+Best leaf game state:
+XXXXXXXXXXXXXXXXXXXX
+XXXX    XXX        X
+X                  X
+X                  X
+X  ^^^^^   ^^^^^   X
+X  ^^^^^   ^^^^^   X
+X  ^^^^^   ^^^^^   X
+X  ^^^^^RRR^^^^^213X
+X  ^^^^^   ^^^^^   X
+X                  X
+X          ^^^^^   X
+X  ^^^^^   ^^^^^   X
+X  ^^^^KB  ^^^^^   X
+X  ^^D^^   ^^^^^   X
+X  ^^^^^   ^^^^^   X
+X  ^^^^^           X
+X               XXXX
+XXXX            XXXX
+XXXXX           XXXX
+XXXXXXXXXXXXXXXXXXXX
+25 moves: L D R R R R R R R R R R R L D D D D D L L L L L L
+Config:
+  Max move depth: 25
+  Parallelism depth: 2
+  Max cache depth: 20
+Stats:
+  Total number of moves simulated (including cache hits): 50,351,372
+  Cache size: 156,393 moves
+  Number of cache hits: 415,526
+  Number of unique, non-cached moves: 49,935,846
+  Number of parallel tree roots: 10
+  Number of tree leaf game states: 29,736,248
+  Total time: 5 seconds
+  Time per move: 107 nanoseconds
+
+
+======== ITERATION 4 ========
+
+Solving with initial state:
+XXXXXXXXXXXXXXXXXXXX
+XXXX    XXX        X
+X                  X
+X                  X
+X  ^^^^^   ^^^^^   X
+X  ^^^^^   ^^^^^   X
+X  ^^^^^   ^^^^^   X
+X  ^^^^^RRR^^^^^213X
+X  ^^^^^   ^^^^^   X
+X                  X
+X          ^^^^^   X
+X  ^^^^^   ^^^^^   X
+X  ^^^^KB  ^^^^^   X
+X  ^^D^^   ^^^^^   X
+X  ^^^^^   ^^^^^   X
+X  ^^^^^           X
+X               XXXX
+XXXX            XXXX
+XXXXX           XXXX
+XXXXXXXXXXXXXXXXXXXX
+Finished the sequential portion. Now parallelizing into 11 threads.
+WIN!!! Turn #25
+Thread 2 finished (1/11): Moves=15K, Cache=62, Leaves=11K
+WIN!!! Turn #25
+Thread 1 finished (2/11): Moves=24K, Cache=76, Leaves=18K
+WIN!!! Turn #25
+Thread 3 finished (3/11): Moves=33K, Cache=78, Leaves=24K
+WIN!!! Turn #25
+Thread 9 finished (4/11): Moves=52K, Cache=98, Leaves=39K
+WIN!!! Turn #25
+Thread 8 finished (5/11): Moves=69K, Cache=120, Leaves=51K
+WIN!!! Turn #25
+Thread 10 finished (6/11): Moves=51K, Cache=97, Leaves=38K
+WIN!!! Turn #25
+Thread 7 finished (7/11): Moves=73K, Cache=130, Leaves=54K
+WIN!!! Turn #25
+Thread 4 finished (8/11): Moves=62K, Cache=123, Leaves=46K
+WIN!!! Turn #25
+Thread 5 finished (9/11): Moves=62K, Cache=123, Leaves=46K
+WIN!!! Turn #25
+Thread 6 finished (10/11): Moves=73K, Cache=133, Leaves=54K
+WIN!!! Turn #25
+Thread 0 finished (11/11): Moves=810K, Cache=1K, Leaves=602K
+
+~~~ RESULTS ~~~
+WIN!!! Winning state:
+XXXXXXXXXXXXXXXXXXXX
+XXXX    XXX        X
+X                  X
+X                  X
+X  ^^^^^   ^^^^^   X
+X  ^^^^^   ^^^^^   X
+X  ^^^^^   ^^^^^   X
+X  ^^^^^RRR^^^^^213X
+X  ^^^^^   ^^^^^   X
+X                  X
+X          ^^^^^   X
+X  ^^^^^   ^^^^^   X
+X  ^^^^^   ^^^^^   X
+X  ^BK^^   ^^^^^   X
+X  ^^^^^   ^^^^^   X
+X  ^^^^^           X
+X               XXXX
+XXXX            XXXX
+XXXXX           XXXX
+XXXXXXXXXXXXXXXXXXXX
+25 moves: L L L L L D L L D D R R R U U U U L L D L D R R R
+Config:
+  Max move depth: 25
+  Parallelism depth: 2
+  Max cache depth: 20
+Stats:
+  Total number of moves simulated (including cache hits): 1,330,033
+  Cache size: 2,247 moves
+  Number of cache hits: 7,777
+  Number of unique, non-cached moves: 1,322,256
+  Number of parallel tree roots: 11
+  Number of tree leaf game states: 989,623
+  Total time: 0 seconds
+  Time per move: 163 nanoseconds
+
+
+-------------------------------------------------------------------------------
 
 TotalMoves(n) = 4^1 + 4^2 + ... + 4^n, where n is the max move depth
 (Note: This formula ignores cached moves and other tree-pruning techniques.)
