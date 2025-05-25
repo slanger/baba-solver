@@ -1,7 +1,6 @@
-﻿# CMakeList.txt : CMake project for BabaSolverCMake, include source and define
-# project specific logic here.
-#
-cmake_minimum_required (VERSION 3.8)
+# CMakeLists.txt : CMake project for BabaSolver
+
+cmake_minimum_required (VERSION 3.20)
 
 # Enable Hot Reload for MSVC compilers if supported.
 if (POLICY CMP0141)
@@ -9,13 +8,21 @@ if (POLICY CMP0141)
   set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")
 endif()
 
-project ("BabaSolverCMake")
+project ("BabaSolver")
 
-# Add source to this project's executable.
-add_executable (BabaSolverCMake "Main.cpp" "GameState.h" "Solver.h" "GameState.cpp" "Solver.cpp")
+add_executable (BabaSolver "Main.cpp" "GameState.h" "Solver.h" "GameState.cpp" "Solver.cpp")
 
-if (CMAKE_VERSION VERSION_GREATER 3.12)
-  set_property(TARGET BabaSolverCMake PROPERTY CXX_STANDARD 20)
+# In GCC, the TBB library is required for the standard library parallel execution policy to
+# actually run in parallel.
+find_package(TBB REQUIRED)
+target_link_libraries(BabaSolver TBB::tbb)
+
+set_property(TARGET BabaSolver PROPERTY CXX_STANDARD 23)
+
+# If the build type is not specified, use the "Release" build type.
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build" FORCE)
+  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "RelWithDebInfo" "MinSizeRel")
 endif()
 
 # TODO: Add tests and install targets if needed.
