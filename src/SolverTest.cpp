@@ -1,6 +1,8 @@
 // Tests for the Solver class.
 
-#include "pch.h"
+#include <memory>
+
+#include "gtest/gtest.h"
 
 #include "GameState.h"
 #include "Solver.h"
