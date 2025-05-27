@@ -9,10 +9,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_executable(BabaSolver "Main.cpp" "Solver.cpp" "GameState.cpp")
 
-# In GCC, the TBB library is required for the standard library parallel execution policy to
-# actually run in parallel.
-find_package(TBB REQUIRED STATIC)
-target_link_libraries(BabaSolver TBB::tbb)
+if(NOT MSVC)
+  # In GCC, the TBB library is required for the standard library parallel execution policy to
+  # actually run in parallel.
+  find_package(TBB REQUIRED STATIC)
+  target_link_libraries(BabaSolver TBB::tbb)
+endif()
 
 # If the build type is not specified, use the "Release" build type.
 if(NOT CMAKE_BUILD_TYPE)
