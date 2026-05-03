@@ -10,9 +10,11 @@
 //   amount of memory). Some flags trade CPU for more memory usage and vice versa.
 
 #include <iostream>
+#include <memory>
 #include <regex>
 #include <string>
 
+#include "GameStateMtnE1.h"
 #include "Solver.h"
 
 static void PrintHelp()
@@ -85,6 +87,7 @@ int main(int argc, char* argv[])
 	}
 
 	// Run solver.
-	BabaSolver::SolveFloatiestPlatforms(options);
+	std::shared_ptr<BabaSolver::GameStateMtnE1> initial_state = std::make_shared<BabaSolver::GameStateMtnE1>();
+	BabaSolver::Solve("Mountaintop Extra-1", initial_state, options);
 	return 0;
 }

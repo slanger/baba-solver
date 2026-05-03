@@ -36,15 +36,15 @@ namespace BabaSolver
 		int iteration_count;
 		// The max depth in the move tree the algorithm will go in one iteration. The number of
 		// moves calculated grows exponentially with this value.
-		int max_turn_depth;
+		uint8_t max_turn_depth;
 		// The depth in the move tree at which the algorithm switches from single-threaded to
 		// multi-threaded. A higher value means higher parallelism (up to the limits of the
 		// computer's CPU), which generally leads to a faster time to complete at the expense of
 		// more CPU and memory usage.
-		int parallelism_depth;
+		uint8_t parallelism_depth;
 		// The max depth in the move tree at which to cache game states. A higher value trades CPU
 		// usage for memory usage.
-		int max_cache_depth;
+		uint8_t max_cache_depth;
 		// How often (in number of moves) to print a debug log to stdout.
 		uint64_t print_every_n_moves;
 
@@ -59,8 +59,5 @@ namespace BabaSolver
 	// See SolverOptions for options that can be tuned for better performance.
 	std::shared_ptr<GameState> Solve(std::string_view level_name,
 		const std::shared_ptr<GameState>& initial_state, const SolverOptions& options);
-
-	// Calls Solve() with the Floatiest Platforms level.
-	std::shared_ptr<GameState> SolveFloatiestPlatforms(const SolverOptions& options);
 
 }  // namespace BabaSolver
