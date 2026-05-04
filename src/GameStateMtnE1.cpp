@@ -102,7 +102,7 @@ namespace BabaSolver
 	static GameObject ALWAYS_MOVABLE_OBJECTS[] = {
 		GameObject::KEY, GameObject::ROCK_TEXT, GameObject::IS_TEXT, GameObject::PUSH_TEXT };
 
-	GameStateMtnE1::GameStateMtnE1() : _grid{}, _baba1({5, 4}), _baba2({5, 12}), _turn(0), _moves{}, _key({11, 12}), _is_text({4, 12}), _rock_is_push_active(false)
+	GameStateMtnE1::GameStateMtnE1() : _grid{}, _baba1({5, 4}), _baba2({5, 12}), _turn(0), _moves{}, _key({11, 12}), _is_text({4, 12}), _rock_is_push_active(true)
 	{
 		// Add tiles to grid.
 		for (int8_t i = 3; i <= 7; ++i)
@@ -517,7 +517,7 @@ namespace BabaSolver
 				_key.j = next_j;
 			}
 		}
-		if (_rock_is_push_active && CellContainsGameObject(cell, GameObject::ROCK))
+		if (_rock_is_push_active && CellContainsGameObject(_grid[i][j], GameObject::ROCK))
 		{
 			RemoveFromCellInPlace(_grid[i][j], GameObject::ROCK);
 			AddToCellInPlace(_grid[next_i][next_j], GameObject::ROCK);

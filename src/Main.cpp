@@ -14,6 +14,7 @@
 #include <regex>
 #include <string>
 
+#include "GameStateMtn6.h"
 #include "GameStateMtnE1.h"
 #include "Solver.h"
 
@@ -87,7 +88,9 @@ int main(int argc, char* argv[])
 	}
 
 	// Run solver.
+	// TODO: Make picking the level smarter.
+	// std::shared_ptr<BabaSolver::GameStateMtn6> initial_state = std::make_shared<BabaSolver::GameStateMtn6>();
 	std::shared_ptr<BabaSolver::GameStateMtnE1> initial_state = std::make_shared<BabaSolver::GameStateMtnE1>();
-	BabaSolver::Solve("Mountaintop Extra-1", initial_state, options);
+	BabaSolver::Solve("Mountaintop Level Extra-1", initial_state, options);
 	return 0;
 }
