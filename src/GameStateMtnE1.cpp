@@ -18,89 +18,107 @@
 
 namespace BabaSolver
 {
-	static constexpr int8_t DOOR_I = 12;
-	static constexpr int8_t DOOR_J = 4;
-
-	static constexpr int8_t BABA_DEAD = -1;
-
-	static char GameObjectToChar(GameObject obj)
+	namespace
 	{
-		switch (obj)
+		// Represents different types of game objects (rock, door, Baba, etc).
+		enum class GameObject : uint16_t
 		{
-		case GameObject::BABA: return 'B';
-		case GameObject::IMMOVABLE: return 'X';
-		case GameObject::TILE: return '^';
-		case GameObject::ROCK: return 'R';
-		case GameObject::DOOR: return 'D';
-		case GameObject::KEY: return 'K';
-		case GameObject::ROCK_TEXT: return '1';
-		case GameObject::IS_TEXT: return '2';
-		case GameObject::PUSH_TEXT: return '3';
+			BABA,
+			IMMOVABLE,
+			TILE,
+			ROCK,
+			DOOR,
+			KEY,
+			ROCK_TEXT,
+			IS_TEXT,
+			PUSH_TEXT,
+		};
+
+		constexpr int8_t DOOR_I = 12;
+		constexpr int8_t DOOR_J = 4;
+
+		constexpr int8_t BABA_DEAD = -1;
+
+		char GameObjectToChar(GameObject obj)
+		{
+			switch (obj)
+			{
+			case GameObject::BABA: return 'B';
+			case GameObject::IMMOVABLE: return 'X';
+			case GameObject::TILE: return '^';
+			case GameObject::ROCK: return 'R';
+			case GameObject::DOOR: return 'D';
+			case GameObject::KEY: return 'K';
+			case GameObject::ROCK_TEXT: return '1';
+			case GameObject::IS_TEXT: return '2';
+			case GameObject::PUSH_TEXT: return '3';
+			}
+			// Should not be able to reach this point.
+			std::cerr << "GameObject isn't set in GameObjectToChar(): " << static_cast<uint16_t>(obj) << std::endl;
+			std::abort();
 		}
-		// Should not be able to reach this point.
-		std::cerr << "GameObject isn't set in GameObjectToChar(): " << static_cast<uint16_t>(obj) << std::endl;
-		std::abort();
-	}
 
-	// Note: This does NOT check for Babas in the cell.
-	static bool CellIsEmpty(uint16_t cell)
-	{
-		return cell == 0;
-	}
+		// Note: This does NOT check for Babas in the cell.
+		bool CellIsEmpty(uint16_t cell)
+		{
+			return cell == 0;
+		}
 
-	static bool CellContainsGameObject(uint16_t cell, GameObject obj)
-	{
-		uint16_t bitmask = 1 << static_cast<uint16_t>(obj);
-		return (cell & bitmask) != 0;
-	}
+		bool CellContainsGameObject(uint16_t cell, GameObject obj)
+		{
+			uint16_t bitmask = 1 << static_cast<uint16_t>(obj);
+			return (cell & bitmask) != 0;
+		}
 
-	static constexpr uint16_t IMMOVABLE_OBJECT_BITMASK = (1 << static_cast<uint16_t>(GameObject::IMMOVABLE)) |
-		(1 << static_cast<uint16_t>(GameObject::DOOR));
+		constexpr uint16_t IMMOVABLE_OBJECT_BITMASK = (1 << static_cast<uint16_t>(GameObject::IMMOVABLE)) |
+			(1 << static_cast<uint16_t>(GameObject::DOOR));
 
-	static bool CellContainsImmovableObject(uint16_t cell)
-	{
-		return (cell & IMMOVABLE_OBJECT_BITMASK) != 0;
-	}
+		bool CellContainsImmovableObject(uint16_t cell)
+		{
+			return (cell & IMMOVABLE_OBJECT_BITMASK) != 0;
+		}
 
-	static constexpr uint16_t MOVABLE_OBJECT_BITMASK = (1 << static_cast<uint16_t>(GameObject::KEY)) |
-		(1 << static_cast<uint16_t>(GameObject::ROCK_TEXT)) | (1 << static_cast<uint16_t>(GameObject::IS_TEXT)) |
-		(1 << static_cast<uint16_t>(GameObject::PUSH_TEXT));
+		constexpr uint16_t MOVABLE_OBJECT_BITMASK = (1 << static_cast<uint16_t>(GameObject::KEY)) |
+			(1 << static_cast<uint16_t>(GameObject::ROCK_TEXT)) | (1 << static_cast<uint16_t>(GameObject::IS_TEXT)) |
+			(1 << static_cast<uint16_t>(GameObject::PUSH_TEXT));
 
-	static bool CellContainsMovableObject(uint16_t cell, bool rock_is_push_active)
-	{
-		if ((cell & MOVABLE_OBJECT_BITMASK) != 0)
-			return true;
-		if (rock_is_push_active && CellContainsGameObject(cell, GameObject::ROCK))
-			return true;
-		return false;
-	}
+		bool CellContainsMovableObject(uint16_t cell, bool rock_is_push_active)
+		{
+			if ((cell & MOVABLE_OBJECT_BITMASK) != 0)
+				return true;
+			if (rock_is_push_active && CellContainsGameObject(cell, GameObject::ROCK))
+				return true;
+			return false;
+		}
 
-	static void AddToCellInPlace(uint16_t& cell, GameObject obj)
-	{
-		uint16_t bitmask = 1 << static_cast<uint16_t>(obj);
-		cell |= bitmask;
-	}
+		void AddToCellInPlace(uint16_t& cell, GameObject obj)
+		{
+			uint16_t bitmask = 1 << static_cast<uint16_t>(obj);
+			cell |= bitmask;
+		}
 
-	static uint16_t AddToCell(uint16_t cell, GameObject obj)
-	{
-		AddToCellInPlace(cell, obj);
-		return cell;
-	}
+		uint16_t AddToCell(uint16_t cell, GameObject obj)
+		{
+			AddToCellInPlace(cell, obj);
+			return cell;
+		}
 
-	static void RemoveFromCellInPlace(uint16_t& cell, GameObject obj)
-	{
-		uint16_t bitmask = ~(1 << static_cast<uint16_t>(obj));
-		cell &= bitmask;
-	}
+		void RemoveFromCellInPlace(uint16_t& cell, GameObject obj)
+		{
+			uint16_t bitmask = ~(1 << static_cast<uint16_t>(obj));
+			cell &= bitmask;
+		}
 
-	static uint16_t RemoveFromCell(uint16_t cell, GameObject obj)
-	{
-		RemoveFromCellInPlace(cell, obj);
-		return cell;
-	}
+		uint16_t RemoveFromCell(uint16_t cell, GameObject obj)
+		{
+			RemoveFromCellInPlace(cell, obj);
+			return cell;
+		}
 
-	static GameObject ALWAYS_MOVABLE_OBJECTS[] = {
-		GameObject::KEY, GameObject::ROCK_TEXT, GameObject::IS_TEXT, GameObject::PUSH_TEXT };
+		GameObject ALWAYS_MOVABLE_OBJECTS[] = {
+			GameObject::KEY, GameObject::ROCK_TEXT, GameObject::IS_TEXT, GameObject::PUSH_TEXT };
+
+	}  // namespace
 
 	GameStateMtnE1::GameStateMtnE1() : _grid{}, _baba1({5, 4}), _baba2({5, 12}), _turn(0), _moves{}, _key({11, 12}), _is_text({4, 12}), _rock_is_push_active(true)
 	{

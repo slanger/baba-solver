@@ -20,31 +20,18 @@
 
 namespace BabaSolver
 {
-	// Level-specific constants
-	inline constexpr int8_t GRID_HEIGHT = 18;
-	inline constexpr int8_t GRID_WIDTH = 18;
-	inline constexpr int16_t GRID_CELL_COUNT = GRID_HEIGHT * GRID_WIDTH;
-
-	// Represents different types of game objects (rock, door, Baba, etc).
-	enum class GameObject : uint16_t
-	{
-		BABA,
-		IMMOVABLE,
-		TILE,
-		ROCK,
-		DOOR,
-		KEY,
-		ROCK_TEXT,
-		IS_TEXT,
-		PUSH_TEXT,
-	};
-
 	// GameState is the object for storing and manipulating game states. A GameState contains a 2D
 	// grid of GameObjects representing the state of the game. A GameState also contains
 	// "contextual" member variables, e.g. the turn count and which moves have been done to get to
 	// the current GameState.
 	class GameStateMtnE1 : public GameState
 	{
+	private:
+		// Level-specific constants
+		static constexpr int8_t GRID_HEIGHT = 18;
+		static constexpr int8_t GRID_WIDTH = 18;
+		static constexpr int16_t GRID_CELL_COUNT = GRID_HEIGHT * GRID_WIDTH;
+
 	public:
 		// State variables
 		// A 2D grid containing the states of all GameObjects. Each cell in the grid is a uint16_t
