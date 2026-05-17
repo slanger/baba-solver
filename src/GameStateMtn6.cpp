@@ -36,8 +36,25 @@ namespace BabaSolver
 
 		constexpr int8_t BABA_DEAD = -1;
 
-		GameObject ALWAYS_MOVABLE_OBJECTS[] = {
+		constexpr GameObject ALWAYS_MOVABLE_OBJECTS[] = {
 			GameObject::DOOR, GameObject::KEY, GameObject::ROCK_TEXT, GameObject::IS_TEXT, GameObject::PUSH_TEXT };
+
+		constexpr uint16_t IMMOVABLE_OBJECT_BITMASK = (1 << static_cast<uint16_t>(GameObject::IMMOVABLE));
+
+		constexpr uint16_t MOVABLE_OBJECT_BITMASK = (1 << static_cast<uint16_t>(GameObject::DOOR)) |
+			(1 << static_cast<uint16_t>(GameObject::KEY)) | (1 << static_cast<uint16_t>(GameObject::ROCK_TEXT)) |
+			(1 << static_cast<uint16_t>(GameObject::IS_TEXT)) | (1 << static_cast<uint16_t>(GameObject::PUSH_TEXT));
+
+		constexpr uint16_t TEXT_BITMASK = (1 << static_cast<uint16_t>(GameObject::ROCK_TEXT)) |
+			(1 << static_cast<uint16_t>(GameObject::IS_TEXT)) | (1 << static_cast<uint16_t>(GameObject::PUSH_TEXT));
+
+		constexpr uint16_t ROCK_AND_TEXT_BITMASK = (1 << static_cast<uint16_t>(GameObject::ROCK)) |
+			(1 << static_cast<uint16_t>(GameObject::ROCK_TEXT)) | (1 << static_cast<uint16_t>(GameObject::IS_TEXT)) |
+			(1 << static_cast<uint16_t>(GameObject::PUSH_TEXT));
+
+		constexpr uint16_t KEY_AND_TEXT_BITMASK = (1 << static_cast<uint16_t>(GameObject::KEY)) |
+			(1 << static_cast<uint16_t>(GameObject::ROCK_TEXT)) | (1 << static_cast<uint16_t>(GameObject::IS_TEXT)) |
+			(1 << static_cast<uint16_t>(GameObject::PUSH_TEXT));
 
 		char GameObjectToChar(GameObject obj)
 		{
@@ -75,16 +92,10 @@ namespace BabaSolver
 			return (cell & obj_bitmask) != 0;
 		}
 
-		constexpr uint16_t IMMOVABLE_OBJECT_BITMASK = (1 << static_cast<uint16_t>(GameObject::IMMOVABLE));
-
 		bool CellContainsImmovableObject(uint16_t cell)
 		{
 			return (cell & IMMOVABLE_OBJECT_BITMASK) != 0;
 		}
-
-		constexpr uint16_t MOVABLE_OBJECT_BITMASK = (1 << static_cast<uint16_t>(GameObject::DOOR)) |
-			(1 << static_cast<uint16_t>(GameObject::KEY)) | (1 << static_cast<uint16_t>(GameObject::ROCK_TEXT)) |
-			(1 << static_cast<uint16_t>(GameObject::IS_TEXT)) | (1 << static_cast<uint16_t>(GameObject::PUSH_TEXT));
 
 		bool CellContainsMovableObject(uint16_t cell, bool rock_is_push_active)
 		{
@@ -275,38 +286,53 @@ namespace BabaSolver
 
 	bool GameStateMtn6::HaveWon() const
 	{
-		// If the door and key are on the same space, we've won.
-		return _door.i == _key.i && _door.j == _key.j;
+		// If the Babas are alive *and* the door and key are on the same space, we've won.
+		// We technically need a Baba to touch the flag that's unlocked by putting the key and the
+		// door in the same space, but for simplicity I've removed this requirement.
+		return AllBabasAlive() && _door.i == _key.i && _door.j == _key.j;
 	}
 
 	bool GameStateMtn6::CheckIfPossibleToWin() const
 	{
-		static constexpr uint16_t bitmask = (1 << static_cast<uint16_t>(GameObject::ROCK)) |
-			(1 << static_cast<uint16_t>(GameObject::ROCK_TEXT)) | (1 << static_cast<uint16_t>(GameObject::IS_TEXT)) |
-			(1 << static_cast<uint16_t>(GameObject::PUSH_TEXT));
-
 		if (!AllBabasAlive())
 			return false;
+
+		int rock_count = 0;
 		for (int8_t j = 5; j <= 9; ++j)
 		{
-			if (CellContainsGameObject(_grid[2][j], GameObject::ROCK) ||
+			if (CellContainsGameObject(_grid[3][j], GameObject::ROCK) ||
+				CellContainsGameObject(_grid[10][j], GameObject::ROCK) ||
 				CellContainsGameObject(_grid[9][j], GameObject::DOOR) ||
 				CellContainsGameObject(_grid[15][j], GameObject::DOOR))
 				return false;
+			if (CellContainsGameObject(_grid[8][j], GameObject::ROCK))
+				++rock_count;
 		}
+		if (rock_count >= 2)
+			return false;
+
 		for (int8_t j = 13; j <= 17; ++j)
 		{
-			if (CellContainsGameObjects(_grid[2][j], bitmask) ||
+			if (CellContainsGameObjects(_grid[3][j], ROCK_AND_TEXT_BITMASK) ||
+				CellContainsGameObject(_grid[9][j], GameObject::ROCK) ||
 				CellContainsGameObject(_grid[8][j], GameObject::KEY) ||
-				CellContainsGameObject(_grid[14][j], GameObject::KEY))
+				CellContainsGameObjects(_grid[14][j], KEY_AND_TEXT_BITMASK))
+				return false;
+
+			if (CellContainsGameObjects(_grid[8][j], TEXT_BITMASK) &&
+				!CellContainsGameObject(_grid[8][j], GameObject::ROCK))
+				return false;
+
+			if (CellContainsGameObjects(_grid[9][j], TEXT_BITMASK) &&
+				!CellContainsGameObject(_grid[8][j], GameObject::ROCK))
 				return false;
 		}
 		for (int8_t i = 3; i <= 7; ++i)
 		{
-			if (CellContainsGameObject(_grid[i][4], GameObject::ROCK) ||
-				CellContainsGameObject(_grid[i][10], GameObject::ROCK) ||
-				CellContainsGameObjects(_grid[i][12], bitmask) ||
-				CellContainsGameObjects(_grid[i][18], bitmask))
+			if (CellContainsGameObject(_grid[i][5], GameObject::ROCK) ||
+				CellContainsGameObject(_grid[i][9], GameObject::ROCK) ||
+				CellContainsGameObjects(_grid[i][13], ROCK_AND_TEXT_BITMASK) ||
+				CellContainsGameObjects(_grid[i][17], ROCK_AND_TEXT_BITMASK))
 				return false;
 		}
 		for (int8_t i = 10; i <= 14; ++i)
@@ -317,10 +343,30 @@ namespace BabaSolver
 		}
 		for (int8_t i = 9; i <= 13; ++i)
 		{
-			if (CellContainsGameObject(_grid[i][12], GameObject::KEY) ||
-				CellContainsGameObject(_grid[i][18], GameObject::KEY))
+			if (CellContainsGameObjects(_grid[i][17], KEY_AND_TEXT_BITMASK))
 				return false;
 		}
+
+		if (CellContainsGameObjects(_grid[9][12], KEY_AND_TEXT_BITMASK) ||
+			CellContainsGameObjects(_grid[9][13], KEY_AND_TEXT_BITMASK))
+			return false;
+
+		if (_key.j >= 13)
+		{
+			for (int8_t i = 10; i <= 13; ++i)
+			{
+				if (CellContainsGameObjects(_grid[i][13], TEXT_BITMASK))
+					return false;
+			}
+		}
+
+		// If the door and key are on the same row and are exactly 8 spaces apart (the same width
+		// that the Babas are apart), then there's no way to move the key without moving the door
+		// as well, except if you use a text block to move the key. While this is technically not
+		// an unwinnable game state, it's not a good state to be in, so we consider it "unwinnable"
+		// so that that part of the move tree gets pruned.
+		if (_door.i == _key.i && _door.j + 8 == _key.j)
+			return false;
 		return true;
 	}
 
@@ -330,35 +376,65 @@ namespace BabaSolver
 			return -1'000'000;
 
 		// First milestone: Create the "rock bridges".
-		int rock_count = 0;
-		for (int8_t j = 5; j <= 9; ++j)
-		{
-			if (CellContainsGameObject(_grid[8][j], GameObject::ROCK))
-				++rock_count;
-		}
 		int score = 0;
-		if (rock_count == 1)
-		{
-			score += 100;
-		}
-		else if (rock_count >= 2)
-		{
-			score -= 1000;
-		}
+		bool first_milestone = false;
 		for (int8_t j = 5; j <= 9; ++j)
 		{
-			if (CellContainsGameObject(_grid[9][j], GameObject::ROCK))
+			if (CellContainsGameObject(_grid[8][j], GameObject::ROCK) &&
+				CellContainsGameObject(_grid[9][j], GameObject::ROCK) &&
+				CellContainsGameObject(_grid[8][j+8], GameObject::ROCK))
+			{
 				score += 1000;
-		}
-		for (int8_t j = 13; j <= 17; ++j)
-		{
-			if (CellContainsGameObject(_grid[8][j], GameObject::ROCK))
-				score += 100;
+				first_milestone = true;
+				break;
+			}
 		}
 
-		// TODO: See if we need to be more clever here.
+		// Second milestone: Have all text blocks in the lower right quandrant.
+		int8_t rows[3]{};
+		int idx = 0;
+		if (first_milestone)
+		{
+			for (int8_t i = 9; i <= 13; ++i)
+			{
+				for (int8_t j = 13; j <= 17; ++j)
+				{
+					if (CellContainsGameObjects(_grid[i][j], TEXT_BITMASK))
+					{
+						score += 10'000;
+						rows[idx++] = i;
+					}
+				}
+			}
+		}
+
+		// Third milestone: Have the text blocks lined up with the key.
+		if (idx >= 3)
+		{
+			// In milestone 3, if Baba2 goes back to the upper right quandrant, then penalize the
+			// game state.
+			if (_baba2.i <= 8)
+				return -1'000'000;
+
+			int8_t row = rows[0];
+			bool same_row = true;
+			for (int i = 1; i < 3; ++i)
+			{
+				if (rows[i] != row)
+				{
+					same_row = false;
+					break;
+				}
+			}
+			if (same_row && row == _key.i && row != _door.i)
+			{
+				score += 100'000;
+			}
+		}
+
 		int distance = std::abs(_key.i - _door.i) + std::abs(_key.j - _door.j);
-		return 100 - distance;
+		score += (100 - distance);
+		return score;
 	}
 
 	void GameStateMtn6::PrintGrid() const
@@ -367,10 +443,10 @@ namespace BabaSolver
 				GameObject::IMMOVABLE,
 				GameObject::KEY,
 				GameObject::DOOR,
-				GameObject::ROCK,
 				GameObject::PUSH_TEXT,
 				GameObject::IS_TEXT,
 				GameObject::ROCK_TEXT,
+				GameObject::ROCK,
 				GameObject::TILE,
 		};
 		std::string perimeter(GRID_WIDTH + 2, 'X');
@@ -391,7 +467,15 @@ namespace BabaSolver
 				{
 					if (CellContainsGameObject(_grid[i][j], obj))
 					{
-						std::cout << GameObjectToChar(obj);
+						if (obj == GameObject::KEY && CellContainsGameObject(_grid[i][j], GameObject::DOOR))
+						{
+							// The key and the door are on the same space. Print 'F' for "flag".
+							std::cout << 'F';
+						}
+						else
+						{
+							std::cout << GameObjectToChar(obj);
+						}
 						found_obj = true;
 						break;
 					}

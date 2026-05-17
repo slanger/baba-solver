@@ -9,7 +9,7 @@
 namespace BabaSolver
 {
 	// The max number of turns GameState's can support.
-	inline constexpr int MAX_TURN_COUNT = 30;
+	inline constexpr int MAX_TURN_COUNT = 35;
 
 	// Coordinate represents a point in a GameState's grid.
 	struct Coordinate

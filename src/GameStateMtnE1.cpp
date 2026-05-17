@@ -39,6 +39,16 @@ namespace BabaSolver
 
 		constexpr int8_t BABA_DEAD = -1;
 
+		constexpr uint16_t IMMOVABLE_OBJECT_BITMASK = (1 << static_cast<uint16_t>(GameObject::IMMOVABLE)) |
+			(1 << static_cast<uint16_t>(GameObject::DOOR));
+
+		constexpr uint16_t MOVABLE_OBJECT_BITMASK = (1 << static_cast<uint16_t>(GameObject::KEY)) |
+			(1 << static_cast<uint16_t>(GameObject::ROCK_TEXT)) | (1 << static_cast<uint16_t>(GameObject::IS_TEXT)) |
+			(1 << static_cast<uint16_t>(GameObject::PUSH_TEXT));
+
+		constexpr GameObject ALWAYS_MOVABLE_OBJECTS[] = {
+			GameObject::KEY, GameObject::ROCK_TEXT, GameObject::IS_TEXT, GameObject::PUSH_TEXT };
+
 		char GameObjectToChar(GameObject obj)
 		{
 			switch (obj)
@@ -70,17 +80,10 @@ namespace BabaSolver
 			return (cell & bitmask) != 0;
 		}
 
-		constexpr uint16_t IMMOVABLE_OBJECT_BITMASK = (1 << static_cast<uint16_t>(GameObject::IMMOVABLE)) |
-			(1 << static_cast<uint16_t>(GameObject::DOOR));
-
 		bool CellContainsImmovableObject(uint16_t cell)
 		{
 			return (cell & IMMOVABLE_OBJECT_BITMASK) != 0;
 		}
-
-		constexpr uint16_t MOVABLE_OBJECT_BITMASK = (1 << static_cast<uint16_t>(GameObject::KEY)) |
-			(1 << static_cast<uint16_t>(GameObject::ROCK_TEXT)) | (1 << static_cast<uint16_t>(GameObject::IS_TEXT)) |
-			(1 << static_cast<uint16_t>(GameObject::PUSH_TEXT));
 
 		bool CellContainsMovableObject(uint16_t cell, bool rock_is_push_active)
 		{
@@ -114,9 +117,6 @@ namespace BabaSolver
 			RemoveFromCellInPlace(cell, obj);
 			return cell;
 		}
-
-		GameObject ALWAYS_MOVABLE_OBJECTS[] = {
-			GameObject::KEY, GameObject::ROCK_TEXT, GameObject::IS_TEXT, GameObject::PUSH_TEXT };
 
 	}  // namespace
 
@@ -358,10 +358,10 @@ namespace BabaSolver
 				GameObject::IMMOVABLE,
 				GameObject::KEY,
 				GameObject::DOOR,
-				GameObject::ROCK,
 				GameObject::PUSH_TEXT,
 				GameObject::IS_TEXT,
 				GameObject::ROCK_TEXT,
+				GameObject::ROCK,
 				GameObject::TILE,
 		};
 		std::string perimeter(GRID_WIDTH + 2, 'X');
@@ -382,7 +382,15 @@ namespace BabaSolver
 				{
 					if (CellContainsGameObject(_grid[i][j], obj))
 					{
-						std::cout << GameObjectToChar(obj);
+						if (obj == GameObject::KEY && CellContainsGameObject(_grid[i][j], GameObject::DOOR))
+						{
+							// The key and the door are on the same space. Print 'F' for "flag".
+							std::cout << 'F';
+						}
+						else
+						{
+							std::cout << GameObjectToChar(obj);
+						}
 						found_obj = true;
 						break;
 					}

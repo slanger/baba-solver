@@ -89,8 +89,9 @@ int main(int argc, char* argv[])
 
 	// Run solver.
 	// TODO: Make picking the level smarter.
-	// std::shared_ptr<BabaSolver::GameStateMtn6> initial_state = std::make_shared<BabaSolver::GameStateMtn6>();
-	std::shared_ptr<BabaSolver::GameStateMtnE1> initial_state = std::make_shared<BabaSolver::GameStateMtnE1>();
-	BabaSolver::Solve("Mountaintop Level Extra-1", initial_state, options);
+	std::shared_ptr<BabaSolver::GameStateMtn6> initial_state = std::make_shared<BabaSolver::GameStateMtn6>();
+	BabaSolver::Solve("Mountaintop Level 6 - Floaty Platforms", initial_state, options);
+	// std::shared_ptr<BabaSolver::GameStateMtnE1> initial_state = std::make_shared<BabaSolver::GameStateMtnE1>();
+	// BabaSolver::Solve("Mountaintop Level Extra-1 - The Floatiest Platforms", initial_state, options);
 	return 0;
 }

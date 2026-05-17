@@ -49,8 +49,8 @@ namespace BabaSolver
 		uint64_t print_every_n_moves;
 
 		// Initializes this object with reasonable defaults.
-		SolverOptions() : iteration_count(4), max_turn_depth(25), parallelism_depth(2),
-			max_cache_depth(20), print_every_n_moves(10'000'000) {}
+		SolverOptions() : iteration_count(8), max_turn_depth(30), parallelism_depth(2),
+			max_cache_depth(25), print_every_n_moves(10'000'000) {}
 	};
 
 	// Tries to solve the level given the initial state and options. Returns the winning game state

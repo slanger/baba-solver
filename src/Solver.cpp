@@ -314,9 +314,16 @@ namespace BabaSolver
 					best_leaf_state = leaf_state;
 				}
 			}
-			std::cout << "Best leaf game state:\n";
-			best_leaf_state->PrintGrid();
-			best_leaf_state->PrintMoves();
+			if (best_leaf_state)
+			{
+				std::cout << "Best leaf game state:\n";
+				best_leaf_state->PrintGrid();
+				best_leaf_state->PrintMoves();
+			}
+			else
+			{
+				std::cout << "No leaf game states available\n";
+			}
 			winning_state = best_leaf_state;
 		}
 		std::cout << "Config:\n";
@@ -353,6 +360,11 @@ namespace BabaSolver
 			std::cout << "\n======== ITERATION " << (i + 1) << " ========\n" << std::endl;
 			current_state->ResetContext();
 			current_state = SolveOneIteration(current_state, options);
+			if (!current_state)
+			{
+				std::cout << "No more options left. Exiting." << std::endl;
+				return current_state;
+			}
 			if (current_state->HaveWon())
 				break;
 		}
