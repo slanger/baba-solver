@@ -77,8 +77,9 @@ namespace BabaSolver
 		std::cout << "Solving with initial state:\n";
 		initial_state->PrintGrid();
 
-		// TODO: Test performance using a queue (BFS) instead of a stack (DFS). I suspect BFS will
-		// perform better.
+		// Use DFS (stack) instead of BFS (queue) in order to keep memory usage low. The move tree
+		// is much, much wider than it is high, so using a depth-first search will keep the stack
+		// size small compared to the enormous size that a breadth-first search queue would need.
 		std::stack<NextMove> stack;
 		// Add the initial four directions to the stack.
 		stack.push(NextMove{ initial_state, Direction::UP });
@@ -184,6 +185,10 @@ namespace BabaSolver
 						thread_id = next_thread_id++;
 					}
 
+					// Use DFS (stack) instead of BFS (queue) in order to keep memory usage low.
+					// The move tree is much, much wider than it is high, so using a depth-first
+					// search will keep the stack size small compared to the enormous size that a
+					// breadth-first search queue would need.
 					std::stack<NextMove> stack;
 					// Apply initial four directions to the stack.
 					stack.push(NextMove{ state, Direction::UP });
