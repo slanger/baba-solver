@@ -77,6 +77,8 @@ namespace BabaSolver
 		std::cout << "Solving with initial state:\n";
 		initial_state->PrintGrid();
 
+		// TODO: Test performance using a queue (BFS) instead of a stack (DFS). I suspect BFS will
+		// perform better.
 		std::stack<NextMove> stack;
 		// Add the initial four directions to the stack.
 		stack.push(NextMove{ initial_state, Direction::UP });

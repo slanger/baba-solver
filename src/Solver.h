@@ -48,9 +48,9 @@ namespace BabaSolver
 		// How often (in number of moves) to print a debug log to stdout.
 		uint64_t print_every_n_moves;
 
-		// Initializes this object with reasonable defaults.
-		SolverOptions() : iteration_count(8), max_turn_depth(30), parallelism_depth(2),
-			max_cache_depth(25), print_every_n_moves(10'000'000) {}
+		// Initializes this object with empty defaults.
+		SolverOptions() : iteration_count(), max_turn_depth(), parallelism_depth(),
+			max_cache_depth(), print_every_n_moves() {}
 	};
 
 	// Tries to solve the level given the initial state and options. Returns the winning game state
