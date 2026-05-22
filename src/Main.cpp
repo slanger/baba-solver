@@ -47,7 +47,7 @@ int main(int argc, char* argv[])
 	std::cout << "Baba Is You solver" << std::endl;
 
 	// Parse flags.
-	BabaSolver::SolverOptions options;
+	BabaSolver::SolverOptions overrides;
 	std::string level(LEVEL_MTN_6);
 	std::regex level_regex("--level=([a-zA-Z0-9_]+)");
 	std::regex iteration_count_regex("--iteration_count=(\\d+)");
@@ -71,27 +71,27 @@ int main(int argc, char* argv[])
 		}
 		if (std::regex_match(flag_str, matches, iteration_count_regex))
 		{
-			options.iteration_count = std::stoi(matches[1]);
+			overrides.iteration_count = std::stoi(matches[1]);
 			continue;
 		}
 		if (std::regex_match(flag_str, matches, max_turn_depth_regex))
 		{
-			options.max_turn_depth = std::stoi(matches[1]);
+			overrides.max_turn_depth = std::stoi(matches[1]);
 			continue;
 		}
 		if (std::regex_match(flag_str, matches, parallelism_depth_regex))
 		{
-			options.parallelism_depth = std::stoi(matches[1]);
+			overrides.parallelism_depth = std::stoi(matches[1]);
 			continue;
 		}
 		if (std::regex_match(flag_str, matches, max_cache_depth_regex))
 		{
-			options.max_cache_depth = std::stoi(matches[1]);
+			overrides.max_cache_depth = std::stoi(matches[1]);
 			continue;
 		}
 		if (std::regex_match(flag_str, matches, print_every_n_moves_regex))
 		{
-			options.print_every_n_moves = std::stoi(matches[1]);
+			overrides.print_every_n_moves = std::stoi(matches[1]);
 			continue;
 		}
 		std::cout << "Invalid argument: " << flag_str << std::endl;
@@ -102,25 +102,31 @@ int main(int argc, char* argv[])
 	// Run solver.
 	if (level == LEVEL_MTN_6)
 	{
-		// If an option wasn't overridden, then use the level specific default value.
-		if (options.iteration_count == 0) options.iteration_count = 4;
-		if (options.max_turn_depth == 0) options.max_turn_depth = 30;
-		if (options.parallelism_depth == 0) options.parallelism_depth = 2;
-		if (options.max_cache_depth == 0) options.max_cache_depth = 25;
-		if (options.print_every_n_moves == 0) options.print_every_n_moves = 10'000'000;
-
+		// Create options with level specific default values, then override them as necessary with
+		// the values from the flags.
+		BabaSolver::SolverOptions options{
+			.iteration_count = 4,
+			.max_turn_depth = 30,
+			.parallelism_depth = 2,
+			.max_cache_depth = 25,
+			.print_every_n_moves = 10'000'000,
+		};
+		options.Override(overrides);
 		auto initial_state = std::make_shared<BabaSolver::GameStateMtn6>();
 		BabaSolver::Solve("Mountaintop Level 6 - Floaty Platforms", initial_state, options);
 	}
 	else if (level == LEVEL_MTN_E1)
 	{
-		// If an option wasn't overridden, then use the level specific default value.
-		if (options.iteration_count == 0) options.iteration_count = 4;
-		if (options.max_turn_depth == 0) options.max_turn_depth = 25;
-		if (options.parallelism_depth == 0) options.parallelism_depth = 2;
-		if (options.max_cache_depth == 0) options.max_cache_depth = 20;
-		if (options.print_every_n_moves == 0) options.print_every_n_moves = 10'000'000;
-
+		// Create options with level specific default values, then override them as necessary with
+		// the values from the flags.
+		BabaSolver::SolverOptions options{
+			.iteration_count = 4,
+			.max_turn_depth = 25,
+			.parallelism_depth = 2,
+			.max_cache_depth = 20,
+			.print_every_n_moves = 10'000'000,
+		};
+		options.Override(overrides);
 		auto initial_state = std::make_shared<BabaSolver::GameStateMtnE1>();
 		BabaSolver::Solve("Mountaintop Level Extra-1 - The Floatiest Platforms", initial_state, options);
 	}

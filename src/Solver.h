@@ -33,24 +33,23 @@ namespace BabaSolver
 	struct SolverOptions
 	{
 		// How many iterations to run the solver.
-		int iteration_count;
+		int iteration_count = 0;
 		// The max depth in the move tree the algorithm will go in one iteration. The number of
 		// moves calculated grows exponentially with this value.
-		uint8_t max_turn_depth;
+		uint8_t max_turn_depth = 0;
 		// The depth in the move tree at which the algorithm switches from single-threaded to
 		// multi-threaded. A higher value means higher parallelism (up to the limits of the
 		// computer's CPU), which generally leads to a faster time to complete at the expense of
 		// more CPU and memory usage.
-		uint8_t parallelism_depth;
+		uint8_t parallelism_depth = 0;
 		// The max depth in the move tree at which to cache game states. A higher value trades CPU
 		// usage for memory usage.
-		uint8_t max_cache_depth;
+		uint8_t max_cache_depth = 0;
 		// How often (in number of moves) to print a debug log to stdout.
-		uint64_t print_every_n_moves;
+		uint64_t print_every_n_moves = 0;
 
-		// Initializes this object with empty defaults.
-		SolverOptions() : iteration_count(), max_turn_depth(), parallelism_depth(),
-			max_cache_depth(), print_every_n_moves() {}
+		// Overrides this SolverOptions's fields if the corresponding fields in `overrides` are set.
+		void Override(const SolverOptions& overrides);
 	};
 
 	// Tries to solve the level given the initial state and options. Returns the winning game state

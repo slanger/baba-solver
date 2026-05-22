@@ -378,4 +378,13 @@ namespace BabaSolver
 		return current_state;
 	}
 
+	void SolverOptions::Override(const SolverOptions& overrides)
+	{
+		if (overrides.iteration_count != 0) iteration_count = overrides.iteration_count;
+		if (overrides.max_turn_depth != 0) max_turn_depth = overrides.max_turn_depth;
+		if (overrides.parallelism_depth != 0) parallelism_depth = overrides.parallelism_depth;
+		if (overrides.max_cache_depth != 0) max_cache_depth = overrides.max_cache_depth;
+		if (overrides.print_every_n_moves != 0) print_every_n_moves = overrides.print_every_n_moves;
+	}
+
 }  // namespace BabaSolver

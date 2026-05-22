@@ -111,7 +111,13 @@ namespace
 TEST(SolverTest, FindsSolution)
 {
 	std::shared_ptr<BabaSolver::GameState> initial_state = std::make_shared<GameStateTest>();
-	BabaSolver::SolverOptions options;
+	BabaSolver::SolverOptions options{
+		.iteration_count = 1,
+		.max_turn_depth = 10,
+		.parallelism_depth = 2,
+		.max_cache_depth = 10,
+		.print_every_n_moves = 10,
+	};
 	std::shared_ptr<BabaSolver::GameState> end_state = BabaSolver::Solve("Test Level", initial_state, options);
 	ASSERT_TRUE(end_state);
 	EXPECT_TRUE(end_state->HaveWon());
