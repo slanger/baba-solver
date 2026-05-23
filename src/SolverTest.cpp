@@ -101,6 +101,7 @@ namespace
 		}
 
 		// Not implemented.
+		std::vector<BabaSolver::Direction> Moves() const override { return std::vector<BabaSolver::Direction>(); }
 		void PrintGrid() const override {}
 		void PrintMoves() const override {}
 	};
@@ -118,7 +119,10 @@ TEST(SolverTest, FindsSolution)
 		.max_cache_depth = 10,
 		.print_every_n_moves = 10,
 	};
-	std::shared_ptr<BabaSolver::GameState> end_state = BabaSolver::Solve("Test Level", initial_state, options);
+	BabaSolver::SolverResult result = BabaSolver::Solve("Test Level", initial_state, options);
+	EXPECT_TRUE(result.solved);
+	ASSERT_EQ(result.iterations.size(), 1);
+	const std::shared_ptr<BabaSolver::GameState>& end_state = result.iterations.back().end_state;
 	ASSERT_TRUE(end_state);
 	EXPECT_TRUE(end_state->HaveWon());
 }

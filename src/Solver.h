@@ -20,9 +20,11 @@
 
 #pragma once
 
+#include <chrono>
 #include <cstdint>
 #include <memory>
 #include <string_view>
+#include <vector>
 
 #include "GameState.h"
 
@@ -52,11 +54,30 @@ namespace BabaSolver
 		void Override(const SolverOptions& overrides);
 	};
 
+	struct IterationResult
+	{
+		std::shared_ptr<GameState> initial_state;
+		std::shared_ptr<GameState> end_state;
+		uint64_t total_num_moves = 0;
+		uint64_t total_cache_hits = 0;
+		uint64_t total_cache_size = 0;
+		uint64_t leaf_state_count = 0;
+		int parallelism_roots_count = 0;
+		std::chrono::nanoseconds total_duration;
+	};
+
+	struct SolverResult
+	{
+		SolverOptions options;
+		bool solved = false;
+		std::vector<IterationResult> iterations;
+	};
+
 	// Tries to solve the level given the initial state and options. Returns the winning game state
 	// if achieveable with the given options, otherwise returns the game state with the best score
 	// at the end of the last iteration. The score is determined by GameState::CalculateScore().
 	// See SolverOptions for options that can be tuned for better performance.
-	std::shared_ptr<GameState> Solve(std::string_view level_name,
+	SolverResult Solve(std::string_view level_name,
 		const std::shared_ptr<GameState>& initial_state, const SolverOptions& options);
 
 }  // namespace BabaSolver

@@ -72,6 +72,7 @@ namespace BabaSolver
 		std::size_t Hash() const override;
 		bool Equals(const GameState& other) const override;
 		uint8_t TurnCount() const override;
+		std::vector<Direction> Moves() const override;
 		std::shared_ptr<GameState> ApplyMove(Direction direction) const override;
 		bool HaveWon() const override;
 		bool CheckIfPossibleToWin() const override;

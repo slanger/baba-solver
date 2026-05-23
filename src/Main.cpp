@@ -15,12 +15,16 @@
 #include <string>
 #include <string_view>
 
+#include "GameState.h"
 #include "GameStateMtn6.h"
 #include "GameStateMtnE1.h"
 #include "Solver.h"
 
 static constexpr std::string_view LEVEL_MTN_6 = "MTN_6";
 static constexpr std::string_view LEVEL_MTN_E1 = "MTN_E1";
+
+static constexpr std::string_view LEVEL_MTN_6_NAME = "Mountaintop Level 6 - Floaty Platforms";
+static constexpr std::string_view LEVEL_MTN_E1_NAME = "Mountaintop Level Extra-1 - The Floatiest Platforms";
 
 static void PrintHelp()
 {
@@ -100,6 +104,7 @@ int main(int argc, char* argv[])
 	}
 
 	// Run solver.
+	BabaSolver::SolverResult result;
 	if (level == LEVEL_MTN_6)
 	{
 		// Create options with level specific default values, then override them as necessary with
@@ -113,7 +118,7 @@ int main(int argc, char* argv[])
 		};
 		options.Override(overrides);
 		auto initial_state = std::make_shared<BabaSolver::GameStateMtn6>();
-		BabaSolver::Solve("Mountaintop Level 6 - Floaty Platforms", initial_state, options);
+		result = BabaSolver::Solve(LEVEL_MTN_6_NAME, initial_state, options);
 	}
 	else if (level == LEVEL_MTN_E1)
 	{
@@ -128,7 +133,7 @@ int main(int argc, char* argv[])
 		};
 		options.Override(overrides);
 		auto initial_state = std::make_shared<BabaSolver::GameStateMtnE1>();
-		BabaSolver::Solve("Mountaintop Level Extra-1 - The Floatiest Platforms", initial_state, options);
+		result = BabaSolver::Solve(LEVEL_MTN_E1_NAME, initial_state, options);
 	}
 	else
 	{
@@ -136,5 +141,6 @@ int main(int argc, char* argv[])
 		PrintHelp();
 		return 1;
 	}
-	return 0;
+
+	return result.solved ? 0 : 1;
 }

@@ -218,6 +218,11 @@ namespace BabaSolver
 		return _turn;
 	}
 
+	std::vector<Direction> GameStateMtnE1::Moves() const
+	{
+		return std::vector<Direction>(_moves, _moves + _turn);
+	}
+
 	std::shared_ptr<GameState> GameStateMtnE1::ApplyMove(Direction direction) const
 	{
 		std::shared_ptr<GameStateMtnE1> new_state = std::make_shared<GameStateMtnE1>(*this);

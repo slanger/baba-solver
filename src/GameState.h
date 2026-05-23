@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <memory>
+#include <vector>
 
 namespace BabaSolver
 {
@@ -40,6 +41,9 @@ namespace BabaSolver
 
 		// Returns the number of turns this game state has been through so far.
 		virtual uint8_t TurnCount() const = 0;
+
+		// Returns a list of moves that were made to get to this GameState.
+		virtual std::vector<Direction> Moves() const = 0;
 
 		// Applies the given move to the current state and returns the resulting GameState. Does
 		// *not* modify this GameState.

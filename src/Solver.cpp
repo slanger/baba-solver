@@ -71,9 +71,11 @@ namespace BabaSolver
 	// Tries to solve the level in one iteration given the initial state and options. Returns
 	// the winning state if it's possible to win in one iteration. Otherwise, returns the state
 	// with the highest score at the end of the iteration.
-	static std::shared_ptr<GameState> SolveOneIteration(
+	static IterationResult SolveOneIteration(
 		const std::shared_ptr<GameState>& initial_state, const SolverOptions& options)
 	{
+		IterationResult result;
+		result.initial_state = initial_state;
 		std::cout << "Solving with initial state:\n";
 		initial_state->PrintGrid();
 
@@ -92,9 +94,6 @@ namespace BabaSolver
 		std::unordered_map<std::shared_ptr<GameState>, uint8_t, GameStatePtrHasher, GameStatePtrComparer> seen_states;
 		seen_states[initial_state] = 0;
 
-		// TODO: Put all these stats variables in a struct.
-		uint64_t total_num_moves = 0;
-		uint64_t total_cache_hits = 0;
 		std::shared_ptr<GameState> winning_state;
 		// parallelism_roots stores the game states at which we will start the parallel
 		// algorithm (one thread per GameState in parallelism_roots).
@@ -103,10 +102,10 @@ namespace BabaSolver
 
 		while (!stack.empty())
 		{
-			++total_num_moves;
-			if (total_num_moves % options.print_every_n_moves == 0)
+			++result.total_num_moves;
+			if (result.total_num_moves % options.print_every_n_moves == 0)
 			{
-				std::cout << "Calculating move #" << total_num_moves << " (" << FormatNumberWithSuffix(total_num_moves)
+				std::cout << "Calculating move #" << result.total_num_moves << " (" << FormatNumberWithSuffix(result.total_num_moves)
 					<< "), cache size = " << seen_states.size() << " (" << FormatNumberWithSuffix(seen_states.size())
 					<< "), stack size = " << stack.size() << std::endl;
 			}
@@ -134,7 +133,7 @@ namespace BabaSolver
 				{
 					if (turn_count >= iter->second)
 					{
-						++total_cache_hits;
+						++result.total_cache_hits;
 						continue;
 					}
 					iter->second = turn_count;
@@ -161,8 +160,8 @@ namespace BabaSolver
 			stack.push(NextMove{ new_state, Direction::LEFT });
 		}
 
-		std::size_t total_cache_size = seen_states.size();
-		uint64_t leaf_state_count = 0;
+		result.total_cache_size = seen_states.size();
+		result.parallelism_roots_count = parallelism_roots.size();
 		std::vector<std::shared_ptr<GameState>> best_leaf_states(parallelism_roots.size());
 		if (!winning_state)
 		{
@@ -177,7 +176,7 @@ namespace BabaSolver
 			// complicated than that. See
 			// https://en.cppreference.com/w/cpp/algorithm#Execution_policies for more details.
 			std::for_each(std::execution::par, parallelism_roots.begin(), parallelism_roots.end(),
-				[&options, &mutex, &seen_states, &winning_state, &total_num_moves, &total_cache_hits, &total_cache_size, &leaf_state_count, &best_leaf_states, &next_thread_id, &num_threads_finished, &total_num_threads](std::shared_ptr<GameState> state)
+				[&options, &result, &mutex, &seen_states, &winning_state, &best_leaf_states, &next_thread_id, &num_threads_finished, &total_num_threads](std::shared_ptr<GameState> state)
 				{
 					uint16_t thread_id = 0;
 					{
@@ -281,10 +280,10 @@ namespace BabaSolver
 					{
 						std::lock_guard<std::mutex> lock(mutex);
 						uint16_t finished_thread_count = ++num_threads_finished;
-						total_num_moves += num_moves;
-						total_cache_hits += num_cache_hits;
-						total_cache_size += local_seen_states.size();
-						leaf_state_count += leaf_count;
+						result.total_num_moves += num_moves;
+						result.total_cache_hits += num_cache_hits;
+						result.total_cache_size += local_seen_states.size();
+						result.leaf_state_count += leaf_count;
 						best_leaf_states[thread_id] = best_leaf_state;
 						// Print inside the critical section so that print statements don't get jumbled.
 						std::cout << "Thread " << thread_id << " finished (" << finished_thread_count << "/" << total_num_threads << "): Moves="
@@ -295,7 +294,7 @@ namespace BabaSolver
 		}
 
 		auto end_time = std::chrono::high_resolution_clock::now();
-		auto total_duration = end_time - start_time;
+		result.total_duration = end_time - start_time;
 
 		// Print results
 		std::cout << "\n~~~ RESULTS ~~~\n";
@@ -304,6 +303,7 @@ namespace BabaSolver
 			std::cout << "WIN!!! Winning state:\n";
 			winning_state->PrintGrid();
 			winning_state->PrintMoves();
+			result.end_state = winning_state;
 		}
 		else
 		{
@@ -331,51 +331,61 @@ namespace BabaSolver
 			{
 				std::cout << "No leaf game states available\n";
 			}
-			winning_state = best_leaf_state;
+			result.end_state = best_leaf_state;
 		}
 		std::cout << "Config:\n";
 		PrintSolverOptions(options, false);
 		std::cout << "Stats:\n";
-		std::cout << "  Total number of moves simulated (including cache hits): " << FormatNumberWithCommas(total_num_moves) << "\n";
-		std::cout << "  Cache size: " << FormatNumberWithCommas(total_cache_size) << " moves\n";
-		std::cout << "  Number of cache hits: " << FormatNumberWithCommas(total_cache_hits) << "\n";
-		std::cout << "  Number of unique, non-cached moves: " << FormatNumberWithCommas(total_num_moves - total_cache_hits) << "\n";
-		std::cout << "  Number of parallel tree roots: " << FormatNumberWithCommas(parallelism_roots.size()) << "\n";
-		std::cout << "  Number of tree leaf game states: " << FormatNumberWithCommas(leaf_state_count) << "\n";
-		std::cout << "  Total time: " << std::chrono::duration_cast<std::chrono::seconds>(total_duration).count() << " seconds\n";
-		std::cout << "  Time per move: " << (total_duration.count() / total_num_moves) << " nanoseconds\n";
+		std::cout << "  Total number of moves simulated (including cache hits): " << FormatNumberWithCommas(result.total_num_moves) << "\n";
+		std::cout << "  Cache size: " << FormatNumberWithCommas(result.total_cache_size) << " moves\n";
+		std::cout << "  Number of cache hits: " << FormatNumberWithCommas(result.total_cache_hits) << "\n";
+		std::cout << "  Number of unique, non-cached moves: " << FormatNumberWithCommas(result.total_num_moves - result.total_cache_hits) << "\n";
+		std::cout << "  Number of parallel tree roots: " << FormatNumberWithCommas(result.parallelism_roots_count) << "\n";
+		std::cout << "  Number of tree leaf game states: " << FormatNumberWithCommas(result.leaf_state_count) << "\n";
+		std::cout << "  Total time: " << std::chrono::duration_cast<std::chrono::seconds>(result.total_duration).count() << " seconds\n";
+		std::cout << "  Time per move: " << (result.total_duration.count() / result.total_num_moves) << " nanoseconds\n";
 		std::cout << std::endl;
 
-		return winning_state;
+		return result;
 	}
 
-	std::shared_ptr<GameState> Solve(std::string_view level_name,
+	SolverResult Solve(std::string_view level_name,
 		const std::shared_ptr<GameState>& initial_state, const SolverOptions& options)
 	{
+		SolverResult result;
+		result.options = options;
 		if (options.max_turn_depth > MAX_TURN_COUNT)
 		{
 			std::cout << "max_turn_depth must be less than MAX_TURN_COUNT (" << MAX_TURN_COUNT << ")" << std::endl;
-			return nullptr;
+			return result;
 		}
 
 		std::cout << "Solving level \"" << level_name << "\" with the following config options:\n";
 		PrintSolverOptions(options, true);
 
 		std::shared_ptr<GameState> current_state = initial_state;
+		result.iterations.reserve(options.iteration_count);
 		for (int i = 0; i < options.iteration_count; ++i)
 		{
 			std::cout << "\n======== ITERATION " << (i + 1) << " ========\n" << std::endl;
 			current_state->ResetContext();
-			current_state = SolveOneIteration(current_state, options);
-			if (!current_state)
+			result.iterations.push_back(SolveOneIteration(current_state, options));
+			const IterationResult& iter_result = result.iterations.back();
+			if (!iter_result.end_state)
 			{
 				std::cout << "No more options left. Exiting." << std::endl;
-				return current_state;
+				return result;
 			}
-			if (current_state->HaveWon())
+
+			if (iter_result.end_state->HaveWon())
+			{
+				result.solved = true;
 				break;
+			}
+
+			current_state = iter_result.end_state;
 		}
-		return current_state;
+		return result;
 	}
 
 	void SolverOptions::Override(const SolverOptions& overrides)
