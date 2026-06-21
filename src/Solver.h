@@ -52,6 +52,9 @@ namespace BabaSolver
 
 		// Overrides this SolverOptions's fields if the corresponding fields in `overrides` are set.
 		void Override(const SolverOptions& overrides);
+
+		// Prints this SolverOption to stdout.
+		void Print() const;
 	};
 
 	struct IterationResult
@@ -64,10 +67,13 @@ namespace BabaSolver
 		uint64_t leaf_state_count = 0;
 		int parallelism_roots_count = 0;
 		std::chrono::nanoseconds total_duration;
+
+		void Print() const;
 	};
 
 	struct SolverResult
 	{
+		std::string level_name;
 		SolverOptions options;
 		bool solved = false;
 		std::vector<IterationResult> iterations;

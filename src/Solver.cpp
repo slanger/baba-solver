@@ -336,14 +336,7 @@ namespace BabaSolver
 		std::cout << "Config:\n";
 		PrintSolverOptions(options, false);
 		std::cout << "Stats:\n";
-		std::cout << "  Total number of moves simulated (including cache hits): " << FormatNumberWithCommas(result.total_num_moves) << "\n";
-		std::cout << "  Cache size: " << FormatNumberWithCommas(result.total_cache_size) << " moves\n";
-		std::cout << "  Number of cache hits: " << FormatNumberWithCommas(result.total_cache_hits) << "\n";
-		std::cout << "  Number of unique, non-cached moves: " << FormatNumberWithCommas(result.total_num_moves - result.total_cache_hits) << "\n";
-		std::cout << "  Number of parallel tree roots: " << FormatNumberWithCommas(result.parallelism_roots_count) << "\n";
-		std::cout << "  Number of tree leaf game states: " << FormatNumberWithCommas(result.leaf_state_count) << "\n";
-		std::cout << "  Total time: " << std::chrono::duration_cast<std::chrono::seconds>(result.total_duration).count() << " seconds\n";
-		std::cout << "  Time per move: " << (result.total_duration.count() / result.total_num_moves) << " nanoseconds\n";
+		result.Print();
 		std::cout << std::endl;
 
 		return result;
@@ -353,6 +346,7 @@ namespace BabaSolver
 		const std::shared_ptr<GameState>& initial_state, const SolverOptions& options)
 	{
 		SolverResult result;
+		result.level_name = level_name;
 		result.options = options;
 		if (options.max_turn_depth > MAX_TURN_COUNT)
 		{
@@ -388,6 +382,18 @@ namespace BabaSolver
 		return result;
 	}
 
+	void IterationResult::Print() const
+	{
+		std::cout << "  Total number of moves simulated (including cache hits): " << FormatNumberWithCommas(this->total_num_moves) << "\n";
+		std::cout << "  Cache size: " << FormatNumberWithCommas(this->total_cache_size) << " moves\n";
+		std::cout << "  Number of cache hits: " << FormatNumberWithCommas(this->total_cache_hits) << "\n";
+		std::cout << "  Number of unique, non-cached moves: " << FormatNumberWithCommas(this->total_num_moves - this->total_cache_hits) << "\n";
+		std::cout << "  Number of parallel tree roots: " << FormatNumberWithCommas(this->parallelism_roots_count) << "\n";
+		std::cout << "  Number of tree leaf game states: " << FormatNumberWithCommas(this->leaf_state_count) << "\n";
+		std::cout << "  Total time: " << std::chrono::duration_cast<std::chrono::seconds>(this->total_duration).count() << " seconds\n";
+		std::cout << "  Time per move: " << (this->total_duration.count() / this->total_num_moves) << " nanoseconds\n";
+	}
+
 	void SolverOptions::Override(const SolverOptions& overrides)
 	{
 		if (overrides.iteration_count != 0) iteration_count = overrides.iteration_count;
@@ -395,6 +401,11 @@ namespace BabaSolver
 		if (overrides.parallelism_depth != 0) parallelism_depth = overrides.parallelism_depth;
 		if (overrides.max_cache_depth != 0) max_cache_depth = overrides.max_cache_depth;
 		if (overrides.print_every_n_moves != 0) print_every_n_moves = overrides.print_every_n_moves;
+	}
+
+	void SolverOptions::Print() const
+	{
+		PrintSolverOptions(*this, true);
 	}
 
 }  // namespace BabaSolver

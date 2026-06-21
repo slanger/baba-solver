@@ -19,6 +19,7 @@
 #include "GameStateMtn6.h"
 #include "GameStateMtnE1.h"
 #include "Solver.h"
+#include "Summarizer.h"
 
 static constexpr std::string_view LEVEL_MTN_6 = "MTN_6";
 static constexpr std::string_view LEVEL_MTN_E1 = "MTN_E1";
@@ -142,5 +143,6 @@ int main(int argc, char* argv[])
 	// Override the level's default options with the command-line flag values, if specified.
 	options.Override(overrides);
 	BabaSolver::SolverResult result = BabaSolver::Solve(level_name, initial_state, options);
+	BabaSolver::Summarize(result);
 	return result.solved ? 0 : 1;
 }
