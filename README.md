@@ -10,9 +10,30 @@ This repo contains the code for a program that can solve levels from the video g
 2. In the terminal, install dependencies: `brew install gcc` and `brew install tbb`
 3. Clone this repo and navigate to the `src/` directory.
 4. Generate CMake files: `cmake -B build --toolchain=toolchain.cmake`
-5. Build the code: `cmake --build build`
-6. Run the binary: `build/BabaSolver`
-7. Run the tests: `cd build && ctest`
+5. Change to the build directory: `cd build`
+6. Build the code: `cmake --build .`
+7. Run the binary: `./BabaSolver`
+8. Run the tests: `ctest`
+
+To update `cmake`, `gcc`, and the dependencies, run the following commands:
+
+```
+$ brew update
+$ brew upgrade
+```
+
+After updating, if you notice a performance regression, run the following commands to force the
+build to use "Release" mode instead of "Debug" mode. Note that the `CMakeLists.txt` file should set
+the build to use "Release" mode by default, but in case there is a bug or change that prevents
+"Release" mode from being used by default, then these commands should help:
+
+```
+$ rm -rf build/
+$ cmake -B build --toolchain=toolchain.cmake
+$ cd build/
+$ cmake -DCMAKE_BUILD_TYPE=Release ..
+$ cmake --build .
+```
 
 ### Windows
 
