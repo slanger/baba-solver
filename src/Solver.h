@@ -1,22 +1,26 @@
 // Code for solving Baba Is You levels.
 //
-// This solver uses a brute force algorithm which calculates the tree of all possible moves and
-// returns the leaf state that has the best score (which may or may not be a winning state).
-// Various optimizations and heuristics are performed to prune paths of the tree that would lead to
-// game states that are impossible/very unlikely to win.
+// This solver uses a brute force algorithm which calculates the tree of all
+// possible moves and returns the leaf state that has the best score (which may
+// or may not be a winning state). Various optimizations and heuristics are
+// performed to prune paths of the tree that would lead to game states that are
+// impossible/very unlikely to win.
 //
-// Note: There's no guarantee that the solution this algorithm finds is the most optimal solution
-// (i.e. the solution with the least number of moves). 
+// Note: There's no guarantee that the solution this algorithm finds is the most
+// optimal solution (i.e. the solution with the least number of moves).
 //
 // Glossary:
-// * Move: Represents an input that a player can make (i.e. up, down, left, or right).
-// * Game state: The state of the game, including the states of all game objects.
-// * Move tree: The tree of possible moves starting with an initial game state. Game states are the
-//     nodes of the tree and moves are the edges. Since there are 4 possible moves for each game
-//     state, the tree grows at a rate of 4^n.
+// * Move: Represents an input that a player can make (i.e. up, down, left, or
+//   right).
+// * Game state: The state of the game, including the states of all game
+//   objects.
+// * Move tree: The tree of possible moves starting with an initial game state.
+//   Game states are the nodes of the tree and moves are the edges. Since there
+//   are 4 possible moves for each game state, the tree grows at a rate of 4^n.
 // * Turn count: The depth of the move tree at a given game state.
-// * Game state score: Represents how likely the game state will lead to a winning game state. This
-//     score generally depends on heuristics and is level specific.
+// * Game state score: Represents how likely the game state will lead to a
+//   winning game state. This score generally depends on heuristics and is
+//   level specific.
 
 #pragma once
 
@@ -28,62 +32,63 @@
 
 #include "GameState.h"
 
-namespace BabaSolver
-{
-	// Options to use when running the Baba Is You solver.
-	// Use these options to trade off CPU usage, memory usage, thread usage, and time to complete.
-	struct SolverOptions
-	{
-		// How many iterations to run the solver.
-		int iteration_count = 0;
-		// The max depth in the move tree the algorithm will go in one iteration. The number of
-		// moves calculated grows exponentially with this value.
-		uint8_t max_turn_depth = 0;
-		// The depth in the move tree at which the algorithm switches from single-threaded to
-		// multi-threaded. A higher value means higher parallelism (up to the limits of the
-		// computer's CPU), which generally leads to a faster time to complete at the expense of
-		// more CPU and memory usage.
-		uint8_t parallelism_depth = 0;
-		// The max depth in the move tree at which to cache game states. A higher value trades CPU
-		// usage for memory usage.
-		uint8_t max_cache_depth = 0;
-		// How often (in number of moves) to print a debug log to stdout.
-		uint64_t print_every_n_moves = 0;
+namespace BabaSolver {
 
-		// Overrides this SolverOptions's fields if the corresponding fields in `overrides` are set.
-		void Override(const SolverOptions& overrides);
+// Options to use when running the Baba Is You solver.
+// Use these options to trade off CPU usage, memory usage, thread usage, and
+// time to complete.
+struct SolverOptions {
+  // How many iterations to run the solver.
+  int iteration_count = 0;
+  // The max depth in the move tree the algorithm will go in one iteration. The
+  // number of moves calculated grows exponentially with this value.
+  uint8_t max_turn_depth = 0;
+  // The depth in the move tree at which the algorithm switches from
+  // single-threaded to multi-threaded. A higher value means higher parallelism
+  // (up to the limits of the computer's CPU), which generally leads to a faster
+  // time to complete at the expense of more CPU and memory usage.
+  uint8_t parallelism_depth = 0;
+  // The max depth in the move tree at which to cache game states. A higher
+  // value trades CPU usage for memory usage.
+  uint8_t max_cache_depth = 0;
+  // How often (in number of moves) to print a debug log to stdout.
+  uint64_t print_every_n_moves = 0;
 
-		// Prints this SolverOption to stdout.
-		void Print() const;
-	};
+  // Overrides this SolverOptions's fields if the corresponding fields in
+  // `overrides` are set.
+  void Override(const SolverOptions& overrides);
 
-	struct IterationResult
-	{
-		std::shared_ptr<GameState> initial_state;
-		std::shared_ptr<GameState> end_state;
-		uint64_t total_num_moves = 0;
-		uint64_t total_cache_hits = 0;
-		uint64_t total_cache_size = 0;
-		uint64_t leaf_state_count = 0;
-		int parallelism_roots_count = 0;
-		std::chrono::nanoseconds total_duration;
+  // Prints this SolverOption to stdout.
+  void Print() const;
+};
 
-		void Print() const;
-	};
+struct IterationResult {
+  std::shared_ptr<GameState> initial_state;
+  std::shared_ptr<GameState> end_state;
+  uint64_t total_num_moves = 0;
+  uint64_t total_cache_hits = 0;
+  uint64_t total_cache_size = 0;
+  uint64_t leaf_state_count = 0;
+  int parallelism_roots_count = 0;
+  std::chrono::nanoseconds total_duration;
 
-	struct SolverResult
-	{
-		std::string level_name;
-		SolverOptions options;
-		bool solved = false;
-		std::vector<IterationResult> iterations;
-	};
+  void Print() const;
+};
 
-	// Tries to solve the level given the initial state and options. Returns the winning game state
-	// if achieveable with the given options, otherwise returns the game state with the best score
-	// at the end of the last iteration. The score is determined by GameState::CalculateScore().
-	// See SolverOptions for options that can be tuned for better performance.
-	SolverResult Solve(std::string_view level_name,
-		const std::shared_ptr<GameState>& initial_state, const SolverOptions& options);
+struct SolverResult {
+  std::string level_name;
+  SolverOptions options;
+  bool solved = false;
+  std::vector<IterationResult> iterations;
+};
+
+// Tries to solve the level given the initial state and options. Returns the
+// winning game state if achieveable with the given options, otherwise returns
+// the game state with the best score at the end of the last iteration. The
+// score is determined by GameState::CalculateScore(). See SolverOptions for
+// options that can be tuned for better performance.
+SolverResult Solve(std::string_view level_name,
+                   const std::shared_ptr<GameState>& initial_state,
+                   const SolverOptions& options);
 
 }  // namespace BabaSolver
