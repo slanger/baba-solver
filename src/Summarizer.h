@@ -6,7 +6,7 @@
 
 namespace BabaSolver
 {
-    // Prints a summary of the given SolverResult to stdout.
+	// Prints a summary of the given SolverResult to stdout.
 	void Summarize(const SolverResult& result);
 
 }  // namespace BabaSolver

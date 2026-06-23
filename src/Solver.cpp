@@ -4,10 +4,10 @@
 #include <cstdint>
 #include <cstdlib>
 #include <execution>
-#include <iostream>
 #include <limits>
 #include <memory>
 #include <mutex>
+#include <print>
 #include <stack>
 #include <string>
 #include <string_view>
@@ -61,11 +61,11 @@ namespace BabaSolver
 	{
 		if (print_iterations)
 		{
-			std::cout << "  Iteration count: " << options.iteration_count << "\n";
+			std::println("  Iteration count: {}", options.iteration_count);
 		}
-		std::cout << "  Max move depth: " << static_cast<uint32_t>(options.max_turn_depth) << "\n";
-		std::cout << "  Parallelism depth: " << static_cast<uint32_t>(options.parallelism_depth) << "\n";
-		std::cout << "  Max cache depth: " << static_cast<uint32_t>(options.max_cache_depth) << "\n";
+		std::println("  Max move depth: {}", static_cast<uint32_t>(options.max_turn_depth));
+		std::println("  Parallelism depth: {}", static_cast<uint32_t>(options.parallelism_depth));
+		std::println("  Max cache depth: {}", static_cast<uint32_t>(options.max_cache_depth));
 	}
 
 	// Tries to solve the level in one iteration given the initial state and options. Returns
@@ -76,7 +76,7 @@ namespace BabaSolver
 	{
 		IterationResult result;
 		result.initial_state = initial_state;
-		std::cout << "Solving with initial state:\n";
+		std::println("Solving with initial state:");
 		initial_state->PrintGrid();
 
 		// Use DFS (stack) instead of BFS (queue) in order to keep memory usage low. The move tree
@@ -105,9 +105,9 @@ namespace BabaSolver
 			++result.total_num_moves;
 			if (result.total_num_moves % options.print_every_n_moves == 0)
 			{
-				std::cout << "Calculating move #" << result.total_num_moves << " (" << FormatNumberWithSuffix(result.total_num_moves)
-					<< "), cache size = " << seen_states.size() << " (" << FormatNumberWithSuffix(seen_states.size())
-					<< "), stack size = " << stack.size() << std::endl;
+				std::println("Calculating move #{} ({}), cache size = {} ({}), stack size = {}",
+					result.total_num_moves, FormatNumberWithSuffix(result.total_num_moves),
+					seen_states.size(), FormatNumberWithSuffix(seen_states.size()), stack.size());
 			}
 
 			// Compute the new game state.
@@ -119,7 +119,7 @@ namespace BabaSolver
 			// Check if we've won.
 			if (new_state->HaveWon())
 			{
-				std::cout << "WIN!!! Turn #" << static_cast<uint32_t>(turn_count) << "\n";
+				std::println("WIN!!! Turn #{}", static_cast<uint32_t>(turn_count));
 				winning_state = new_state;
 				break;
 			}
@@ -169,7 +169,7 @@ namespace BabaSolver
 			uint16_t next_thread_id = 0;
 			uint16_t num_threads_finished = 0;
 			uint16_t total_num_threads = static_cast<uint16_t>(parallelism_roots.size());
-			std::cout << "Finished the sequential portion. Now parallelizing into " << total_num_threads << " threads." << std::endl;
+			std::println("Finished the sequential portion. Now parallelizing into {} threads.", total_num_threads);
 
 			// Use std::for_each with std::execution::par to parallelize the algorithm. You can
 			// think of it as one thread per element in parallelism_roots, but in reality it's more
@@ -210,9 +210,9 @@ namespace BabaSolver
 						{
 							// Lock the mutex so that print statements don't get jumbled.
 							std::lock_guard<std::mutex> lock(mutex);
-							std::cout << "Thread " << thread_id << ": Calculating move #" << num_moves << " (" << FormatNumberWithSuffix(num_moves)
-								<< "), cache size = " << local_seen_states.size() << " (" << FormatNumberWithSuffix(local_seen_states.size())
-								<< "), stack size = " << stack.size() << std::endl;
+							std::println("Thread {}: Calculating move #{} ({}), cache size = {} ({}), stack size = {}",
+								thread_id, num_moves, FormatNumberWithSuffix(num_moves), local_seen_states.size(),
+								FormatNumberWithSuffix(local_seen_states.size()), stack.size());
 						}
 
 						// Compute the new game state.
@@ -225,7 +225,7 @@ namespace BabaSolver
 						if (new_state->HaveWon())
 						{
 							std::lock_guard<std::mutex> lock(mutex);
-							std::cout << "WIN!!! Turn #" << static_cast<uint32_t>(turn_count) << "\n";
+							std::println("WIN!!! Turn #{}", static_cast<uint32_t>(turn_count));
 							winning_state = new_state;
 							best_leaf_state = new_state;
 							break;
@@ -286,9 +286,11 @@ namespace BabaSolver
 						result.leaf_state_count += leaf_count;
 						best_leaf_states[thread_id] = best_leaf_state;
 						// Print inside the critical section so that print statements don't get jumbled.
-						std::cout << "Thread " << thread_id << " finished (" << finished_thread_count << "/" << total_num_threads << "): Moves="
-							<< FormatNumberWithSuffix(num_moves) << ", Cache=" << FormatNumberWithSuffix(local_seen_states.size()) << ", Leaves="
-							<< FormatNumberWithSuffix(leaf_count) << std::endl;
+						std::println("Thread {} finished ({}/{}): Moves={}, Cache={}, Leaves={}",
+							thread_id, finished_thread_count, total_num_threads,
+							FormatNumberWithSuffix(num_moves),
+							FormatNumberWithSuffix(local_seen_states.size()),
+							FormatNumberWithSuffix(leaf_count));
 					}
 				});
 		}
@@ -297,17 +299,18 @@ namespace BabaSolver
 		result.total_duration = end_time - start_time;
 
 		// Print results
-		std::cout << "\n~~~ RESULTS ~~~\n";
+		std::println();
+		std::println("~~~ RESULTS ~~~");
 		if (winning_state)
 		{
-			std::cout << "WIN!!! Winning state:\n";
+			std::println("WIN!!! Winning state:");
 			winning_state->PrintGrid();
 			winning_state->PrintMoves();
 			result.end_state = winning_state;
 		}
 		else
 		{
-			std::cout << "Did not win...\n";
+			std::println("Did not win...");
 			int best_score = std::numeric_limits<int>::min();
 			std::shared_ptr<GameState> best_leaf_state;
 			for (const std::shared_ptr<GameState>& leaf_state : best_leaf_states)
@@ -323,21 +326,21 @@ namespace BabaSolver
 			}
 			if (best_leaf_state)
 			{
-				std::cout << "Best leaf game state:\n";
+				std::println("Best leaf game state:");
 				best_leaf_state->PrintGrid();
 				best_leaf_state->PrintMoves();
 			}
 			else
 			{
-				std::cout << "No leaf game states available\n";
+				std::println("No leaf game states available.");
 			}
 			result.end_state = best_leaf_state;
 		}
-		std::cout << "Config:\n";
+		std::println("Config:");
 		PrintSolverOptions(options, false);
-		std::cout << "Stats:\n";
+		std::println("Stats:");
 		result.Print();
-		std::cout << std::endl;
+		std::println();
 
 		return result;
 	}
@@ -350,24 +353,26 @@ namespace BabaSolver
 		result.options = options;
 		if (options.max_turn_depth > MAX_TURN_COUNT)
 		{
-			std::cout << "max_turn_depth must be less than MAX_TURN_COUNT (" << MAX_TURN_COUNT << ")" << std::endl;
+			std::println("max_turn_depth must be less than MAX_TURN_COUNT ({})", MAX_TURN_COUNT);
 			return result;
 		}
 
-		std::cout << "Solving level \"" << level_name << "\" with the following config options:\n";
+		std::println("Solving level \"{}\" with the following config options:", level_name);
 		PrintSolverOptions(options, true);
 
 		std::shared_ptr<GameState> current_state = initial_state;
 		result.iterations.reserve(options.iteration_count);
 		for (int i = 0; i < options.iteration_count; ++i)
 		{
-			std::cout << "\n======== ITERATION " << (i + 1) << " ========\n" << std::endl;
+			std::println();
+			std::println("======== ITERATION {} ========", i + 1);
+			std::println();
 			current_state->ResetContext();
 			result.iterations.push_back(SolveOneIteration(current_state, options));
 			const IterationResult& iter_result = result.iterations.back();
 			if (!iter_result.end_state)
 			{
-				std::cout << "No more options left. Exiting." << std::endl;
+				std::println("No more options left. Exiting.");
 				return result;
 			}
 
@@ -384,14 +389,14 @@ namespace BabaSolver
 
 	void IterationResult::Print() const
 	{
-		std::cout << "  Total number of moves simulated (including cache hits): " << FormatNumberWithCommas(this->total_num_moves) << "\n";
-		std::cout << "  Cache size: " << FormatNumberWithCommas(this->total_cache_size) << " moves\n";
-		std::cout << "  Number of cache hits: " << FormatNumberWithCommas(this->total_cache_hits) << "\n";
-		std::cout << "  Number of unique, non-cached moves: " << FormatNumberWithCommas(this->total_num_moves - this->total_cache_hits) << "\n";
-		std::cout << "  Number of parallel tree roots: " << FormatNumberWithCommas(this->parallelism_roots_count) << "\n";
-		std::cout << "  Number of tree leaf game states: " << FormatNumberWithCommas(this->leaf_state_count) << "\n";
-		std::cout << "  Total time: " << std::chrono::duration_cast<std::chrono::seconds>(this->total_duration).count() << " seconds\n";
-		std::cout << "  Time per move: " << (this->total_duration.count() / this->total_num_moves) << " nanoseconds\n";
+		std::println("  Total number of moves simulated (including cache hits): {}", FormatNumberWithCommas(this->total_num_moves));
+		std::println("  Cache size: {} moves", FormatNumberWithCommas(this->total_cache_size));
+		std::println("  Number of cache hits: {}", FormatNumberWithCommas(this->total_cache_hits));
+		std::println("  Number of unique, non-cached moves: {}", FormatNumberWithCommas(this->total_num_moves - this->total_cache_hits));
+		std::println("  Number of parallel tree roots: {}", FormatNumberWithCommas(this->parallelism_roots_count));
+		std::println("  Number of tree leaf game states: {}", FormatNumberWithCommas(this->leaf_state_count));
+		std::println("  Total time: {} seconds", std::chrono::duration_cast<std::chrono::seconds>(this->total_duration).count());
+		std::println("  Time per move: {} nanoseconds", this->total_duration.count() / this->total_num_moves);
 	}
 
 	void SolverOptions::Override(const SolverOptions& overrides)

@@ -2,11 +2,12 @@
 #include <chrono>
 #include <cstddef>
 #include <cstdint>
+#include <cstdio>
 #include <cstdlib>
 #include <execution>
-#include <iostream>
 #include <memory>
 #include <mutex>
+#include <print>
 #include <stack>
 #include <string>
 #include <unordered_set>
@@ -64,7 +65,7 @@ namespace BabaSolver
 			case GameObject::PUSH_TEXT: return '3';
 			}
 			// Should not be able to reach this point.
-			std::cerr << "GameObject isn't set in GameObjectToChar(): " << static_cast<uint16_t>(obj) << std::endl;
+			std::println(stderr, "GameObject isn't set in GameObjectToChar(): {}", static_cast<uint16_t>(obj));
 			std::abort();
 		}
 
@@ -370,15 +371,15 @@ namespace BabaSolver
 				GameObject::TILE,
 		};
 		std::string perimeter(GRID_WIDTH + 2, 'X');
-		std::cout << perimeter << '\n';
+		std::println("{}", perimeter);
 		for (int8_t i = 0; i < GRID_HEIGHT; ++i)
 		{
-			std::cout << 'X';
+			std::print("X");
 			for (int8_t j = 0; j < GRID_WIDTH; ++j)
 			{
 				if ((i == _baba1.i && j == _baba1.j) || (i == _baba2.i && j == _baba2.j))
 				{
-					std::cout << 'B';
+					std::print("B");
 					continue;
 				}
 
@@ -390,11 +391,11 @@ namespace BabaSolver
 						if (obj == GameObject::KEY && CellContainsGameObject(_grid[i][j], GameObject::DOOR))
 						{
 							// The key and the door are on the same space. Print 'F' for "flag".
-							std::cout << 'F';
+							std::print("F");
 						}
 						else
 						{
-							std::cout << GameObjectToChar(obj);
+							std::print("{}", GameObjectToChar(obj));
 						}
 						found_obj = true;
 						break;
@@ -405,46 +406,46 @@ namespace BabaSolver
 
 				if (CellIsEmpty(_grid[i][j]))
 				{
-					std::cout << ' ';
+					std::print(" ");
 				}
 				else
 				{
 					// Programmer error
-					std::cerr << "Unable to print GameState grid cell: " << _grid[i][j] << std::endl;
+					std::println(stderr, "Unable to print GameState grid cell: {}", _grid[i][j]);
 					std::abort();
 				}
 			}
-			std::cout << "X\n";
+			std::println("X");
 		}
-		std::cout << perimeter << std::endl;
+		std::println("{}", perimeter);
 	}
 
 	void GameStateMtnE1::PrintMoves() const
 	{
-		std::cout << static_cast<uint32_t>(_turn) << " moves:";
+		std::print("{} moves:", static_cast<uint32_t>(_turn));
 		for (int i = 0; i < _turn; ++i)
 		{
 			switch (_moves[i])
 			{
 			case Direction::UP:
-				std::cout << " U";
+				std::print(" U");
 				break;
 			case Direction::RIGHT:
-				std::cout << " R";
+				std::print(" R");
 				break;
 			case Direction::DOWN:
-				std::cout << " D";
+				std::print(" D");
 				break;
 			case Direction::LEFT:
-				std::cout << " L";
+				std::print(" L");
 				break;
 			default:
 				// Should not be able to reach this code.
-				std::cerr << "Invalid direction in GameState::PrintMoves(): " << static_cast<uint32_t>(_moves[i]) << std::endl;
+				std::println(stderr, "Invalid direction in GameState::PrintMoves(): {}", static_cast<uint32_t>(_moves[i]));
 				std::abort();
 			}
 		}
-		std::cout << std::endl;
+		std::println();
 	}
 
 	void GameStateMtnE1::ResetContext()
@@ -483,7 +484,7 @@ namespace BabaSolver
 			break;
 		default:
 			// Should not be able to reach this code.
-			std::cerr << "Invalid direction in GameState::MoveBaba(): " << static_cast<uint32_t>(direction) << std::endl;
+			std::println(stderr, "Invalid direction in GameState::MoveBaba(): {}", static_cast<uint32_t>(direction));
 			std::abort();
 		}
 

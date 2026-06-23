@@ -9,8 +9,8 @@
 // * Tune the flag parameters based on your computer's hardware (CPU speed, number of cores/threads,
 //   amount of memory). Some flags trade CPU for more memory usage and vice versa.
 
-#include <iostream>
 #include <memory>
+#include <print>
 #include <regex>
 #include <string>
 #include <string_view>
@@ -29,7 +29,7 @@ static constexpr std::string_view LEVEL_MTN_E1_NAME = "Mountaintop Level Extra-1
 
 static void PrintHelp()
 {
-	std::string help = R"(BabaSolver: A program for solving Baba Is You levels
+	std::println(R"(BabaSolver: A program for solving Baba Is You levels
 
 See the README for a detailed description of the algorithm used.
 
@@ -43,13 +43,12 @@ Flags:
   --max_cache_depth      The max depth in the move tree at which to cache game states. A higher value trades CPU usage for memory usage.
   --print_every_n_moves  How often (in number of moves) to print a debug log to stdout.
   --help                 Prints this help message.
-)";
-	std::cout << help << std::endl;
+)");
 }
 
 int main(int argc, char* argv[])
 {
-	std::cout << "Baba Is You solver" << std::endl;
+	std::println("Baba Is You solver");
 
 	// Parse flags.
 	BabaSolver::SolverOptions overrides;
@@ -99,7 +98,7 @@ int main(int argc, char* argv[])
 			overrides.print_every_n_moves = std::stoi(matches[1]);
 			continue;
 		}
-		std::cout << "Invalid argument: " << flag_str << std::endl;
+		std::println("Invalid argument: {}", flag_str);
 		PrintHelp();
 		return 1;
 	}
@@ -134,7 +133,7 @@ int main(int argc, char* argv[])
 	}
 	else
 	{
-		std::cout << "Invalid level: " << level << std::endl;
+		std::println("Invalid level: {}", level);
 		PrintHelp();
 		return 1;
 	}

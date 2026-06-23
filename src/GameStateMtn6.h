@@ -2,18 +2,9 @@
 
 #pragma once
 
-#include <algorithm>
-#include <chrono>
 #include <cstddef>
 #include <cstdint>
-#include <cstdlib>
-#include <execution>
-#include <iostream>
 #include <memory>
-#include <mutex>
-#include <stack>
-#include <string>
-#include <unordered_set>
 #include <vector>
 
 #include "GameState.h"
@@ -106,11 +97,6 @@ namespace BabaSolver
 
 		// Checks if the "ROCK IS PUSH" text blocks are intact (and thus the rule is active).
 		bool CheckRockIsPushIntact() const;
-
-		// Checks if it is possible for the text blocks to be moved into the same row as the rocks.
-		// This is used as an optimization for pruning paths in the move tree that won't lead to a
-		// winning game state.
-		bool CheckIfTextCanBeAlignedWithRocks(int8_t rock_row) const;
 	};
 
 }  // namespace BabaSolver
