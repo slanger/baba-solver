@@ -17,6 +17,7 @@
 #include <vector>
 
 #include "GameState.h"
+#include "NumberFormat.h"
 
 namespace BabaSolver {
 
@@ -28,25 +29,6 @@ struct NextMove {
   std::shared_ptr<GameState> state;
   Direction dir_to_apply;
 };
-
-// Formats the given number with a suffix, e.g. 10,000,000 -> "10M".
-std::string FormatNumberWithSuffix(uint64_t n) {
-  if (n >= 1'000'000'000) return std::to_string(n / 1'000'000'000) + "B";
-  if (n >= 1'000'000) return std::to_string(n / 1'000'000) + "M";
-  if (n >= 1'000) return std::to_string(n / 1'000) + "K";
-  return std::to_string(n);
-}
-
-// Formats the given number with commas, e.g. 10000000 -> "10,000,000".
-std::string FormatNumberWithCommas(uint64_t n) {
-  std::string s = std::to_string(n);
-  int64_t size = s.length() - 3;
-  while (size > 0) {
-    s.insert(size, ",");
-    size -= 3;
-  }
-  return s;
-}
 
 // Prints the given SolverOptions to stdout.
 void PrintSolverOptions(const SolverOptions& options, bool print_iterations) {
@@ -400,6 +382,8 @@ void IterationResult::Print() const {
           .count());
   std::println("  Time per move: {} nanoseconds",
                this->total_duration.count() / this->total_num_moves);
+  std::println("  End state:");
+  this->end_state->PrintGrid();
 }
 
 void SolverOptions::Override(const SolverOptions& overrides) {
