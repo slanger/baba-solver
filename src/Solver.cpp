@@ -344,8 +344,9 @@ SolverResult Solve(std::string_view level_name,
     std::println();
     std::println("======== ITERATION {} ========", i + 1);
     std::println();
-    current_state->ResetContext();
-    result.iterations.push_back(SolveOneIteration(current_state, options));
+	std::shared_ptr<GameState> new_state = current_state->Clone();
+    new_state->ResetContext();
+    result.iterations.push_back(SolveOneIteration(new_state, options));
     const IterationResult& iter_result = result.iterations.back();
     if (!iter_result.end_state) {
       std::println("No more options left. Exiting.");

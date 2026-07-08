@@ -27,6 +27,10 @@ class GameStateTest : public BabaSolver::GameState {
 
   GameStateTest() : _baba({0, 0}), _turn(0) {}
 
+  std::shared_ptr<GameState> Clone() const override {
+    return std::make_shared<GameStateTest>(*this);
+  }
+
   std::size_t Hash() const override {
     return std::hash<uint16_t>{}(CombineUInt8s(_baba.i, _baba.j));
   }

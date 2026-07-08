@@ -245,6 +245,10 @@ GameStateMtn6::GameStateMtn6(const GameStateMtn6& other)
   std::copy(&other._moves[0], &other._moves[0] + other._turn, &_moves[0]);
 }
 
+std::shared_ptr<GameState> GameStateMtn6::Clone() const {
+  return std::make_shared<GameStateMtn6>(*this);
+}
+
 std::size_t GameStateMtn6::Hash() const {
   std::size_t hash = static_cast<std::size_t>(
                          CombineUInt16s(CombineUInt8s(_baba1.i, _baba1.j),
@@ -465,7 +469,7 @@ void GameStateMtn6::PrintGrid() const {
 }
 
 void GameStateMtn6::PrintMoves() const {
-  std::print("{} moves:", static_cast<uint32_t>(_turn));
+  std::print("{:2} moves:", static_cast<uint32_t>(_turn));
   for (int i = 0; i < _turn; ++i) {
     switch (_moves[i]) {
       case Direction::UP:

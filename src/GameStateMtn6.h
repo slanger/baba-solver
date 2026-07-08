@@ -63,6 +63,7 @@ class GameStateMtn6 : public GameState {
   // GameState interface implementations
   // See GameState.h for comments are what these functions do.
 
+  std::shared_ptr<GameState> Clone() const override;
   std::size_t Hash() const override;
   bool Equals(const GameState& other) const override;
   uint8_t TurnCount() const override;

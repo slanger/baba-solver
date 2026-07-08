@@ -31,6 +31,9 @@ enum class Direction : uint8_t {
 // manipulates game states.
 class GameState {
  public:
+  // Returns a deep copy of this GameState object.
+  virtual std::shared_ptr<GameState> Clone() const = 0;
+
   // Returns the hash of this GameState object, for use in hash maps and sets.
   virtual std::size_t Hash() const = 0;
 

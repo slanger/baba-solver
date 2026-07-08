@@ -98,6 +98,25 @@ static void PrintStats(const SolverResult& result) {
   std::println("|| {:>14} ", total_nsecs / total_moves);
 }
 
+static void PrintMoves(const SolverResult& result) {
+  std::println("Moves:");
+  for (const IterationResult& iter : result.iterations) {
+    iter.end_state->PrintMoves();
+  }
+}
+
+static void PrintGameStates(const SolverResult& result) {
+  std::println("Initial state:");
+  result.iterations[0].initial_state->PrintGrid();
+  std::println();
+  int iter_count = 0;
+  for (const IterationResult& iter : result.iterations) {
+    std::println("Iteration {} end state:", ++iter_count);
+    iter.end_state->PrintGrid();
+    std::println();
+  }
+}
+
 void Summarize(const SolverResult& result) {
   std::println(R"(
 ~~~ Summary ~~~
@@ -111,16 +130,9 @@ Solver options)",
   std::println();
   PrintStats(result);
   std::println();
-  std::println("Initial state:");
-  result.iterations[0].initial_state->PrintGrid();
+  PrintMoves(result);
   std::println();
-  int iter_count = 0;
-  for (const IterationResult& iter : result.iterations) {
-    std::println("Iteration {} end state:", ++iter_count);
-    iter.end_state->PrintGrid();
-    std::println();
-    // TODO: Print the list of moves for each iteration.
-  }
+  PrintGameStates(result);
 }
 
 }  // namespace BabaSolver

@@ -199,6 +199,10 @@ GameStateMtnE1::GameStateMtnE1(const GameStateMtnE1& other)
   std::copy(&other._moves[0], &other._moves[0] + other._turn, &_moves[0]);
 }
 
+std::shared_ptr<GameState> GameStateMtnE1::Clone() const {
+  return std::make_shared<GameStateMtnE1>(*this);
+}
+
 bool GameStateMtnE1::Equals(const GameState& other) const {
   if (const GameStateMtnE1* rhs = dynamic_cast<const GameStateMtnE1*>(&other)) {
     if (_baba1.i != rhs->_baba1.i || _baba1.j != rhs->_baba1.j) return false;
@@ -385,7 +389,7 @@ void GameStateMtnE1::PrintGrid() const {
 }
 
 void GameStateMtnE1::PrintMoves() const {
-  std::print("{} moves:", static_cast<uint32_t>(_turn));
+  std::print("{:2} moves:", static_cast<uint32_t>(_turn));
   for (int i = 0; i < _turn; ++i) {
     switch (_moves[i]) {
       case Direction::UP:
