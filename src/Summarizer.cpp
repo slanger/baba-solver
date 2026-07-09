@@ -117,7 +117,7 @@ static void PrintGameStates(const SolverResult& result) {
   }
 }
 
-void Summarize(const SolverResult& result) {
+void SummarizeResult(const SolverResult& result) {
   std::println(R"(
 ~~~ Summary ~~~
 

@@ -20,6 +20,7 @@
 #include "GameState.h"
 #include "GameStateMtn6.h"
 #include "GameStateMtnE1.h"
+#include "Replayer.h"
 #include "Solver.h"
 #include "Summarizer.h"
 
@@ -133,6 +134,7 @@ int main(int argc, char* argv[]) {
   options.Override(overrides);
   BabaSolver::SolverResult result =
       BabaSolver::Solve(level_name, initial_state, options);
-  BabaSolver::Summarize(result);
+  BabaSolver::SummarizeResult(result);
+  BabaSolver::ReplayResult(result);
   return result.solved ? 0 : 1;
 }

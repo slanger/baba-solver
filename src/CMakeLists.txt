@@ -7,7 +7,15 @@ project("BabaSolver")
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_executable(BabaSolver "Main.cpp" "Solver.cpp" "Summarizer.cpp" "NumberFormat.cpp" "GameState.cpp" "GameStateMtn6.cpp" "GameStateMtnE1.cpp")
+add_executable(BabaSolver
+  "Main.cpp"
+  "Solver.cpp"
+  "Summarizer.cpp"
+  "Replayer.cpp"
+  "NumberFormat.cpp"
+  "GameState.cpp"
+  "GameStateMtn6.cpp"
+  "GameStateMtnE1.cpp")
 
 if(NOT MSVC)
   # In GCC, the TBB library is required for the standard library parallel execution policy to
