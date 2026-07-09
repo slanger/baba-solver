@@ -187,18 +187,6 @@ GameStateMtnE1::GameStateMtnE1()
   RecalculateState();
 }
 
-GameStateMtnE1::GameStateMtnE1(const GameStateMtnE1& other)
-    : _baba1(other._baba1),
-      _baba2(other._baba2),
-      _turn(other._turn),
-      _key(other._key),
-      _is_text(other._is_text),
-      _rock_is_push_active(other._rock_is_push_active) {
-  std::copy(&other._grid[0][0], &other._grid[0][0] + GRID_CELL_COUNT,
-            &_grid[0][0]);
-  std::copy(&other._moves[0], &other._moves[0] + other._turn, &_moves[0]);
-}
-
 std::shared_ptr<GameState> GameStateMtnE1::Clone() const {
   return std::make_shared<GameStateMtnE1>(*this);
 }

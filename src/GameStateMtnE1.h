@@ -21,7 +21,6 @@ class GameStateMtnE1 : public GameState {
   // Level-specific constants
   static constexpr int8_t GRID_HEIGHT = 18;
   static constexpr int8_t GRID_WIDTH = 18;
-  static constexpr int16_t GRID_CELL_COUNT = GRID_HEIGHT * GRID_WIDTH;
 
  public:
   // State variables
@@ -55,8 +54,6 @@ class GameStateMtnE1 : public GameState {
  public:
   // Constructor
   GameStateMtnE1();
-  // Copy constructor. Makes a deep copy of all class member variables.
-  GameStateMtnE1(const GameStateMtnE1& other);
 
   // GameState interface implementations
   // See GameState.h for comments are what these functions do.

@@ -2865,6 +2865,63 @@ Moves:
 
 
 -------------------------------------------------------------------------------
+After removing copy constructor
+
+Level: Mountaintop Level 6 - Floaty Platforms
+Level solved? YES
+
+Solver options
+  Iteration count: 4
+  Max move depth: 30
+  Parallelism depth: 2
+  Max cache depth: 25
+
+ STATS            |  Iteration 1   |  Iteration 2   |  Iteration 3   |  Iteration 4   ||     Total      
+--------------------------------------------------------------------------------------------------------
+ Moves simulated  |    181,348,524 |    163,692,936 |    125,938,520 |         41,688 ||    471,021,668 
+ Cache size       |        694,582 |        575,769 |        572,415 |            406 ||      1,843,172 
+ # cache hits     |      1,472,386 |      1,132,953 |      1,013,183 |          1,720 ||      3,620,242 
+ # unique moves   |    179,876,138 |    162,559,983 |    124,925,337 |         39,968 ||    467,401,426 
+ # parallel roots |              5 |              3 |              3 |              4 ||             15 
+ # leaf states    |     97,245,042 |     91,490,975 |     68,450,411 |         24,011 ||    257,210,439 
+ Total time       |             5s |            10s |            17s |             0s ||            32s 
+ Time per move    |           32ns |           64ns |          140ns |           68ns ||           72ns 
+
+Moves:
+30 moves: R R D L L R R U U U L D R D L U U L D U L L D R U D D D D L
+30 moves: R R R R U L L D L U R R U U L D R D L U U U L D D D D D D D
+30 moves: L D D D R L U U U R D L D D R L U U R D R R U L L U L D D R
+24 moves: R U R R D D L L L L R R R U L L L U R R R R D D
+
+
+Level: Mountaintop Level Extra-1 - The Floatiest Platforms
+Level solved? YES
+
+Solver options
+  Iteration count: 4
+  Max move depth: 25
+  Parallelism depth: 2
+  Max cache depth: 20
+
+ STATS            |  Iteration 1   |  Iteration 2   |  Iteration 3   |  Iteration 4   ||     Total      
+--------------------------------------------------------------------------------------------------------
+ Moves simulated  |  1,663,575,480 |     36,454,064 |     50,351,372 |      1,330,033 ||  1,751,710,949 
+ Cache size       |      4,448,996 |        109,010 |        156,393 |          2,247 ||      4,716,646 
+ # cache hits     |      6,377,297 |        289,772 |        415,526 |          7,777 ||      7,090,372 
+ # unique moves   |  1,657,198,183 |     36,164,292 |     49,935,846 |      1,322,256 ||  1,744,620,577 
+ # parallel roots |             12 |              4 |             10 |             11 ||             37 
+ # leaf states    |    979,693,683 |     21,737,208 |     29,736,248 |        989,623 ||  1,032,156,762 
+ Total time       |            31s |             1s |             2s |             0s ||            34s 
+ Time per move    |           19ns |           45ns |           55ns |           72ns ||           20ns 
+
+Moves:
+25 moves: L L U U R D L D D R U R D L L U U R D L D R R R R
+25 moves: L L L L U R U U R D L D R U U R D U R D D L U L D
+25 moves: L D R R R R R R R R R R R L D D D D D L L L L L L
+25 moves: L L L L L D L L D D R R R U U U U L L D L D R R R
+
+
+-------------------------------------------------------------------------------
 
 TotalMoves(n) = 4^1 + 4^2 + ... + 4^n, where n is the max move depth
 (Note: This formula ignores cached moves and other tree-pruning techniques.)
